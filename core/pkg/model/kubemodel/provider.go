@@ -1,3 +1,4 @@
+//nolint:stylecheck // generated code and package conventions
 package kubemodel
 
 // @bingen:generate:Provider

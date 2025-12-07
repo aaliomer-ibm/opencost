@@ -1,3 +1,4 @@
+//nolint:stylecheck // generated code and package conventions
 package kubemodel
 
 import (
@@ -6,8 +7,8 @@ import (
 
 // @bingen:generate:Metadata
 type Metadata struct {
-	CreatedAt   time.Time           `json:"createdAt"`             // @bingen:field[version=1]
-	CompletedAt time.Time           `json:"completedAt"`           // @bingen:field[version=1]
+	Start       time.Time           `json:"start"`                 // @bingen:field[version=1] - Processing start timestamp
+	End         time.Time           `json:"end"`                   // @bingen:field[version=1] - Processing end timestamp
 	ObjectCount int                 `json:"objectCount"`           // @bingen:field[version=1]
 	Diagnostics []*DiagnosticResult `json:"diagnostics,omitempty"` // @bingen:field[version=1]
 }

@@ -35,8 +35,4 @@ type PersistentVolumeClaim struct {
 	// Calculated as: min(Finish or now, PV.Finish or now) - Start
 	// This ensures PVC duration never exceeds the bound PV's lifetime
 	DurationSeconds uint64 `json:"durationSeconds,omitempty"` // @bingen:field[version=1]
-	// Storage performance characteristics (inherited from bound PV)
-	ProvisionedIOPS       uint64 `json:"provisionedIops,omitempty"`       // @bingen:field[version=1] - From bound PV
-	ProvisionedThroughput uint64 `json:"provisionedThroughput,omitempty"` // @bingen:field[version=1] - From bound PV
-	PerformanceMode       string `json:"performanceMode,omitempty"`       // @bingen:field[version=1] - From bound PV
 }

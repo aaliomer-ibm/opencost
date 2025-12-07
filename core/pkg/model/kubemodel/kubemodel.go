@@ -226,7 +226,6 @@ func (kms *KubeModelSet) RegisterNode(id, name string) error {
 
 		kms.Nodes[id] = &Node{
 			UID:             id,
-			ClusterUID:      kms.Cluster.UID,
 			Name:            name,
 			AttachedVolumes: make(map[string]*NodeVolumeUsage),
 		}
@@ -255,12 +254,6 @@ func (kms *KubeModelSet) RegisterOwner(id, name, namespace, kind string) error {
 	}
 
 	return nil
-}
-
-// RegisterController is deprecated. Use RegisterOwner instead.
-// Maintained for backward compatibility.
-func (kms *KubeModelSet) RegisterController(id, name, namespace, kind string) error {
-	return kms.RegisterOwner(id, name, namespace, kind)
 }
 
 func (kms *KubeModelSet) RegisterService(id, name, namespace string) error {

@@ -488,7 +488,6 @@ func copyResourceQuantities(rq ResourceQuantities) ResourceQuantities {
 func copyNode(node *Node) *Node {
 	copied := &Node{
 		UID:                  node.UID,
-		ClusterUID:           node.ClusterUID,
 		Name:                 node.Name,
 		ProviderResourceUID:  node.ProviderResourceUID,
 		Labels:               maps.Clone(node.Labels),
@@ -657,24 +656,21 @@ func copyVolume(vol *PersistentVolume) *PersistentVolume {
 
 func copyPVC(pvc *PersistentVolumeClaim) *PersistentVolumeClaim {
 	copied := &PersistentVolumeClaim{
-		UID:                   pvc.UID,
-		NamespaceUID:          pvc.NamespaceUID,
-		Name:                  pvc.Name,
-		Labels:                maps.Clone(pvc.Labels),
-		Annotations:           maps.Clone(pvc.Annotations),
-		StorageClass:          pvc.StorageClass,
-		StorageKiBSeconds:     pvc.StorageKiBSeconds,
-		RequestedBytes:        pvc.RequestedBytes,
-		Size:                  pvc.Size,
-		VolumeName:            pvc.VolumeName,
-		AccessModes:           slices.Clone(pvc.AccessModes),
-		VolumeAttributes:      maps.Clone(pvc.VolumeAttributes),
-		Start:                 pvc.Start,
-		DurationSeconds:       pvc.DurationSeconds,
-		ActualUsedKiBSeconds:  pvc.ActualUsedKiBSeconds,
-		ProvisionedIOPS:       pvc.ProvisionedIOPS,
-		ProvisionedThroughput: pvc.ProvisionedThroughput,
-		PerformanceMode:       pvc.PerformanceMode,
+		UID:                  pvc.UID,
+		NamespaceUID:         pvc.NamespaceUID,
+		Name:                 pvc.Name,
+		Labels:               maps.Clone(pvc.Labels),
+		Annotations:          maps.Clone(pvc.Annotations),
+		StorageClass:         pvc.StorageClass,
+		StorageKiBSeconds:    pvc.StorageKiBSeconds,
+		RequestedBytes:       pvc.RequestedBytes,
+		Size:                 pvc.Size,
+		VolumeName:           pvc.VolumeName,
+		AccessModes:          slices.Clone(pvc.AccessModes),
+		VolumeAttributes:     maps.Clone(pvc.VolumeAttributes),
+		Start:                pvc.Start,
+		DurationSeconds:      pvc.DurationSeconds,
+		ActualUsedKiBSeconds: pvc.ActualUsedKiBSeconds,
 	}
 	if pvc.VolumeUID != nil {
 		volumeUID := *pvc.VolumeUID

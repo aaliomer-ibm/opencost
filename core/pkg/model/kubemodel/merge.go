@@ -191,13 +191,9 @@ func mergePods(merged, kms1, kms2 *KubeModelSet) {
 	for uid, pod2 := range kms2.Pods {
 		if pod1, exists := merged.Pods[uid]; exists {
 			// Merge mutable metrics
-			pod1.CpuMillicoreUsageMax = max(pod1.CpuMillicoreUsageMax, pod2.CpuMillicoreUsageMax)
-			pod1.RAMByteUsageMax = max(pod1.RAMByteUsageMax, pod2.RAMByteUsageMax)
 			pod1.NetworkReceiveBytes += pod2.NetworkReceiveBytes
 			pod1.NetworkTransferBytes += pod2.NetworkTransferBytes
 			pod1.DurationSeconds += pod2.DurationSeconds
-			pod1.CpuMillicoreRequestSeconds += pod2.CpuMillicoreRequestSeconds
-			pod1.RAMKiBRequestSeconds += pod2.RAMKiBRequestSeconds
 
 			// Merge lifecycle fields
 			// Start: take earliest
@@ -535,13 +531,9 @@ func copyPod(pod *Pod) *Pod {
 		NodeUID:                    pod.NodeUID,
 		Labels:                     maps.Clone(pod.Labels),
 		Annotations:                maps.Clone(pod.Annotations),
-		CpuMillicoreUsageMax:       pod.CpuMillicoreUsageMax,
-		RAMByteUsageMax:            pod.RAMByteUsageMax,
 		NetworkReceiveBytes:        pod.NetworkReceiveBytes,
 		NetworkTransferBytes:       pod.NetworkTransferBytes,
 		DurationSeconds:            pod.DurationSeconds,
-		CpuMillicoreRequestSeconds: pod.CpuMillicoreRequestSeconds,
-		RAMKiBRequestSeconds:       pod.RAMKiBRequestSeconds,
 		NetworkInternetEgressBytes: pod.NetworkInternetEgressBytes,
 		NetworkCrossRegionBytes:    pod.NetworkCrossRegionBytes,
 		NetworkSameRegionBytes:     pod.NetworkSameRegionBytes,

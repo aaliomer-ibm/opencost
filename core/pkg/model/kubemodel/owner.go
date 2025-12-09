@@ -1,7 +1,11 @@
 //nolint:stylecheck // generated code and package conventions
 package kubemodel
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 // @bingen:generate:OwnerKind
 type OwnerKind string
@@ -18,8 +22,8 @@ const (
 // Owner represents a Kubernetes resource owner (workload controller)
 // @bingen:generate:Owner
 type Owner struct {
-	UID          string            `json:"uid"`                   // @bingen:field[version=1]
-	NamespaceUID string            `json:"namespaceUid"`          // @bingen:field[version=1]
+	UID          uuid.UUID         `json:"uid"`                   // @bingen:field[version=1]
+	NamespaceUID uuid.UUID         `json:"namespaceUid"`          // @bingen:field[version=1]
 	Name         string            `json:"name"`                  // @bingen:field[version=1]
 	Kind         OwnerKind         `json:"kind"`                  // @bingen:field[version=1]
 	Labels       map[string]string `json:"labels,omitempty"`      // @bingen:field[version=1]

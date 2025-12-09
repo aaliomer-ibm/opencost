@@ -1,11 +1,15 @@
 //nolint:stylecheck // generated code and package conventions
 package kubemodel
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 // @bingen:generate:DiagnosticResult
 type DiagnosticResult struct {
-	UID         string            `json:"uid"`               // @bingen:field[version=1]
+	UID         uuid.UUID         `json:"uid"`               // @bingen:field[version=1]
 	Name        string            `json:"name"`              // @bingen:field[version=1]
 	Description string            `json:"description"`       // @bingen:field[version=1]
 	Category    string            `json:"category"`          // @bingen:field[version=1]

@@ -6,6 +6,8 @@ import (
 	"maps"
 	"math"
 	"slices"
+
+	"github.com/google/uuid"
 )
 
 func Merge(kms1, kms2 *KubeModelSet) (*KubeModelSet, error) {
@@ -90,13 +92,13 @@ func Merge(kms1, kms2 *KubeModelSet) (*KubeModelSet, error) {
 func mergeNamespaces(merged, kms1, kms2 *KubeModelSet) {
 	for uid, ns := range kms1.Namespaces {
 		merged.Namespaces[uid] = copyNamespace(ns)
-		merged.idx.namespaceNameToID[ns.Name] = uid
+		merged.idx.namespaceNameToID[ns.Name] = ns.UID
 		merged.Metadata.ObjectCount++
 	}
 	for uid, ns := range kms2.Namespaces {
 		if _, exists := merged.Namespaces[uid]; !exists {
 			merged.Namespaces[uid] = copyNamespace(ns)
-			merged.idx.namespaceNameToID[ns.Name] = uid
+			merged.idx.namespaceNameToID[ns.Name] = ns.UID
 			merged.Metadata.ObjectCount++
 		}
 	}
@@ -422,7 +424,7 @@ func copyNode(node *Node) *Node {
 		CpuMillicoreUsageMax: node.CpuMillicoreUsageMax,
 		RAMByteUsageMax:      node.RAMByteUsageMax,
 		DurationSeconds:      node.DurationSeconds,
-		AttachedVolumes:      make(map[string]*NodeVolumeUsage),
+		AttachedVolumes:      make(map[uuid.UUID]*NodeVolumeUsage),
 		Start:                node.Start,
 		End:                  node.End,
 	}
@@ -526,7 +528,6 @@ func copyVolume(vol *PersistentVolume) *PersistentVolume {
 		ReclaimPolicy:         vol.ReclaimPolicy,
 		Region:                vol.Region,
 		Zone:                  vol.Zone,
-		VolumeAttributes:      maps.Clone(vol.VolumeAttributes),
 		Start:                 vol.Start,
 		End:                   vol.End,
 		DurationSeconds:       vol.DurationSeconds,

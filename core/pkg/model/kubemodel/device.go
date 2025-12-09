@@ -5,21 +5,23 @@ import (
 	"errors"
 	"fmt"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // @bingen:generate:Device
 type Device struct {
-	UID              string  `json:"uid"`              // @bingen:field[version=1] GPU UUID (hardware identifier)
-	Type             string  `json:"type,omitempty"`   // @bingen:field[version=1] Device type (e.g., "gpu", "tpu")
-	NodeUID          string  `json:"nodeUid"`          // @bingen:field[version=1] Node hosting this GPU device
-	DeviceNumber     int32   `json:"deviceNumber"`     // @bingen:field[version=1]
-	ModelName        string  `json:"modelName"`        // @bingen:field[version=1]
-	IsShared         bool    `json:"isShared"`         // @bingen:field[version=1] GPU sharing information
-	SharePercentage  float64 `json:"sharePercentage"`  // @bingen:field[version=1]
-	UsageSeconds     float64 `json:"usageSeconds"`     // @bingen:field[version=1] GPU seconds available
-	MemoryKiBSeconds uint64  `json:"memoryKiBSeconds"` // @bingen:field[version=1] GPU memory capacity in KiB-seconds
-	PowerWattSeconds float64 `json:"powerWattSeconds"` // @bingen:field[version=1] GPU device power consumption in watt-seconds (Joules)
-	PowerWattMax     float64 `json:"powerWattMax"`     // @bingen:field[version=1] GPU device max power consumption in watts
+	UID              uuid.UUID `json:"uid"`              // @bingen:field[version=1] GPU UUID (hardware identifier)
+	Type             string    `json:"type,omitempty"`   // @bingen:field[version=1] Device type (e.g., "gpu", "tpu")
+	NodeUID          uuid.UUID `json:"nodeUid"`          // @bingen:field[version=1] Node hosting this GPU device
+	DeviceNumber     int32     `json:"deviceNumber"`     // @bingen:field[version=1]
+	ModelName        string    `json:"modelName"`        // @bingen:field[version=1]
+	IsShared         bool      `json:"isShared"`         // @bingen:field[version=1] GPU sharing information
+	SharePercentage  float64   `json:"sharePercentage"`  // @bingen:field[version=1]
+	UsageSeconds     float64   `json:"usageSeconds"`     // @bingen:field[version=1] GPU seconds available
+	MemoryKiBSeconds uint64    `json:"memoryKiBSeconds"` // @bingen:field[version=1] GPU memory capacity in KiB-seconds
+	PowerWattSeconds float64   `json:"powerWattSeconds"` // @bingen:field[version=1] GPU device power consumption in watt-seconds (Joules)
+	PowerWattMax     float64   `json:"powerWattMax"`     // @bingen:field[version=1] GPU device max power consumption in watts
 	// Version 2 fields - Lifecycle tracking
 	Start           time.Time `json:"start,omitempty"` // @bingen:field[version=1] - Device availability start
 	End             time.Time `json:"end,omitempty"`   // @bingen:field[version=1] - Device availability end
@@ -28,10 +30,10 @@ type Device struct {
 
 // Validate validates the GPUDevice fields
 func (d *Device) Validate() error {
-	if d.UID == "" {
+	if d.UID == uuid.Nil {
 		return errors.New("UID is required")
 	}
-	if d.NodeUID == "" {
+	if d.NodeUID == uuid.Nil {
 		return errors.New("NodeUID is required")
 	}
 	if d.SharePercentage < 0 || d.SharePercentage > 100 {

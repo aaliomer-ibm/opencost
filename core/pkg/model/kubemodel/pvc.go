@@ -1,15 +1,19 @@
 //nolint:stylecheck // generated code and package conventions
 package kubemodel
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 // @bingen:generate:PersistentVolumeClaim
 type PersistentVolumeClaim struct {
 	// Version 1 fields
-	UID               string            `json:"uid"`                   // @bingen:field[version=1]
-	NamespaceUID      string            `json:"namespaceUid"`          // @bingen:field[version=1]
-	VolumeUID         *string           `json:"volumeUid,omitempty"`   // @bingen:field[version=1]
-	PodUID            *string           `json:"podUid,omitempty"`      // @bingen:field[version=1]
+	UID               uuid.UUID         `json:"uid"`                   // @bingen:field[version=1]
+	NamespaceUID      uuid.UUID         `json:"namespaceUid"`          // @bingen:field[version=1]
+	VolumeUID         *uuid.UUID        `json:"volumeUid,omitempty"`   // @bingen:field[version=1]
+	PodUID            *uuid.UUID        `json:"podUid,omitempty"`      // @bingen:field[version=1]
 	Name              string            `json:"name"`                  // @bingen:field[version=1]
 	Labels            map[string]string `json:"labels,omitempty"`      // @bingen:field[version=1]
 	Annotations       map[string]string `json:"annotations,omitempty"` // @bingen:field[version=1]

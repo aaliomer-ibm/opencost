@@ -1,11 +1,15 @@
 //nolint:stylecheck
 package kubemodel
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 // @bingen:generate:Cluster
 type Cluster struct {
-	UID          string    `json:"uid"`             // @bingen:field[version=1]
+	UID          uuid.UUID `json:"uid"`             // @bingen:field[version=1]
 	Provider     Provider  `json:"provider"`        // @bingen:field[version=1]
 	Account      string    `json:"account"`         // @bingen:field[version=1]
 	Name         string    `json:"name"`            // @bingen:field[version=1]

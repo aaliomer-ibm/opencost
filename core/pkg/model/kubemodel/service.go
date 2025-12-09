@@ -3,6 +3,8 @@ package kubemodel
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // @bingen:generate:ServiceType
@@ -45,9 +47,9 @@ type ServicePort struct {
 // - Data transfer: $0.09/GB for internet egress
 // Total Service Cost = (LB hours × hourly rate) + (LCU hours × LCU rate) + (NetworkTransferBytes × transfer rate)
 type Service struct {
-	UID                  string            `json:"uid"`                   // @bingen:field[version=1]
-	ClusterUID           string            `json:"clusterUid"`            // @bingen:field[version=1]
-	NamespaceUID         string            `json:"namespaceUid"`          // @bingen:field[version=1]
+	UID                  uuid.UUID         `json:"uid"`                   // @bingen:field[version=1]
+	ClusterUID           uuid.UUID         `json:"clusterUid"`            // @bingen:field[version=1]
+	NamespaceUID         uuid.UUID         `json:"namespaceUid"`          // @bingen:field[version=1]
 	Name                 string            `json:"name"`                  // @bingen:field[version=1]
 	Type                 ServiceType       `json:"type"`                  // @bingen:field[version=1]
 	Hostname             string            `json:"hostname,omitempty"`    // @bingen:field[version=1]

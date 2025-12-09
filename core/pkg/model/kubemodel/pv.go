@@ -1,13 +1,17 @@
 //nolint:stylecheck // generated code and package conventions
 package kubemodel
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 // @bingen:generate:PersistentVolume
 type PersistentVolume struct {
 	// Version 1 fields
-	UID          string            `json:"uid"`                   // @bingen:field[version=1]
-	ClusterUID   string            `json:"clusterUid"`            // @bingen:field[version=1]
+	UID          uuid.UUID         `json:"uid"`                   // @bingen:field[version=1]
+	ClusterUID   uuid.UUID         `json:"clusterUid"`            // @bingen:field[version=1]
 	Name         string            `json:"name"`                  // @bingen:field[version=1]
 	Namespace    string            `json:"namespace"`             // @bingen:field[version=1]
 	Labels       map[string]string `json:"labels,omitempty"`      // @bingen:field[version=1]
@@ -28,8 +32,6 @@ type PersistentVolume struct {
 	Region string `json:"region,omitempty"` // @bingen:field[version=1]
 	// Availability zone for cross-AZ cost tracking
 	Zone string `json:"zone,omitempty"` // @bingen:field[version=1]
-	// Generic attributes (IOPS, throughput, type, etc.) from CSI or provider
-	VolumeAttributes map[string]string `json:"volumeAttributes,omitempty"` // @bingen:field[version=1]
 	// Volume lifecycle timestamps
 	Start time.Time `json:"start"`         // @bingen:field[version=1] - Volume creation timestamp
 	End   time.Time `json:"end,omitempty"` // @bingen:field[version=1] - Volume deletion timestamp (nil if still active)

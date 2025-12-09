@@ -5,12 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // @bingen:generate:DeviceUsage
 type DeviceUsage struct {
-	ContainerUID         string    `json:"containerUid"`              // @bingen:field[version=1]
-	DeviceUID            string    `json:"deviceUid"`                 // @bingen:field[version=1]
+	ContainerUID         uuid.UUID `json:"containerUid"`              // @bingen:field[version=1]
+	DeviceUID            uuid.UUID `json:"deviceUid"`                 // @bingen:field[version=1]
 	UsageSeconds         float64   `json:"usageSeconds"`              // @bingen:field[version=1]
 	UsagePercentageMax   float64   `json:"usagePercentageMax"`        // @bingen:field[version=1]
 	MemoryKiBSecondsUsed uint64    `json:"memoryKiBSecondsUsed"`      // @bingen:field[version=1]
@@ -21,10 +23,10 @@ type DeviceUsage struct {
 }
 
 func (u *DeviceUsage) Validate() error {
-	if u.ContainerUID == "" {
+	if u.ContainerUID == uuid.Nil {
 		return errors.New("ContainerUID is required")
 	}
-	if u.DeviceUID == "" {
+	if u.DeviceUID == uuid.Nil {
 		return errors.New("GpuDeviceUID is required")
 	}
 	if u.UsagePercentageMax < 0 || u.UsagePercentageMax > 100 {

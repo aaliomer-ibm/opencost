@@ -1,12 +1,16 @@
 //nolint:stylecheck
 package kubemodel
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 // @bingen:generate:ResourceQuota
 type ResourceQuota struct {
-	UID          string               `json:"uid"`             // @bingen:field[version=1]
-	NamespaceUID string               `json:"namespaceUID"`    // @bingen:field[version=1]
+	UID          uuid.UUID            `json:"uid"`             // @bingen:field[version=1]
+	NamespaceUID uuid.UUID            `json:"namespaceUID"`    // @bingen:field[version=1]
 	Name         string               `json:"name"`            // @bingen:field[version=1]
 	Spec         *ResourceQuotaSpec   `json:"spec"`            // @bingen:field[version=1]
 	Status       *ResourceQuotaStatus `json:"status"`          // @bingen:field[version=1]

@@ -24,6 +24,6 @@ type Owner struct {
 	Kind         OwnerKind         `json:"kind"`                  // @bingen:field[version=1]
 	Labels       map[string]string `json:"labels,omitempty"`      // @bingen:field[version=1]
 	Annotations  map[string]string `json:"annotations,omitempty"` // @bingen:field[version=1]
-	Start        *time.Time        `json:"start,omitempty"`       // @bingen:field[version=1] - Owner creation/start timestamp
-	End          *time.Time        `json:"end,omitempty"`         // @bingen:field[version=1] - Owner deletion/end timestamp (nil if still active)
+	Start        time.Time         `json:"start,omitempty"`       // @bingen:field[version=1] - Owner creation/start timestamp
+	End          time.Time         `json:"end,omitempty"`         // @bingen:field[version=1] - Owner deletion/end timestamp (nil if still active)
 }

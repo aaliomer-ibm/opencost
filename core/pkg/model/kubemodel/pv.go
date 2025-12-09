@@ -14,8 +14,6 @@ type PersistentVolume struct {
 	Annotations  map[string]string `json:"annotations,omitempty"` // @bingen:field[version=1]
 	StorageClass string            `json:"storageClass"`          // @bingen:field[version=1]
 	SizeBytes    uint64            `json:"size"`                  // @bingen:field[version=1]
-
-	// Version 2 fields - FinOps enhancements
 	// awsElasticBlockStore, azureDisk, gcePersistentDisk, csi, nfs, local, etc.
 	Type string `json:"type,omitempty"` // @bingen:field[version=1]
 	// ebs.csi.aws.com, disk.csi.azure.com, etc.
@@ -33,8 +31,8 @@ type PersistentVolume struct {
 	// Generic attributes (IOPS, throughput, type, etc.) from CSI or provider
 	VolumeAttributes map[string]string `json:"volumeAttributes,omitempty"` // @bingen:field[version=1]
 	// Volume lifecycle timestamps
-	Start time.Time  `json:"start"`         // @bingen:field[version=1] - Volume creation timestamp
-	End   *time.Time `json:"end,omitempty"` // @bingen:field[version=1] - Volume deletion timestamp (nil if still active)
+	Start time.Time `json:"start"`         // @bingen:field[version=1] - Volume creation timestamp
+	End   time.Time `json:"end,omitempty"` // @bingen:field[version=1] - Volume deletion timestamp (nil if still active)
 	// Duration volume existed within measurement window
 	DurationSeconds uint64 `json:"durationSeconds"` // @bingen:field[version=1]
 	// JSON-encoded node affinity for local volumes

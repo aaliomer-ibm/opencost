@@ -1,13 +1,17 @@
-//nolint:stylecheck // generated code and package conventions
+//nolint:stylecheck
 package kubemodel
+
+import "time"
 
 // @bingen:generate:ResourceQuota
 type ResourceQuota struct {
-	UID          string               `json:"uid"`          // @bingen:field[version=1]
-	NamespaceUID string               `json:"namespaceUID"` // @bingen:field[version=1]
-	Name         string               `json:"name"`         // @bingen:field[version=1]
-	Spec         *ResourceQuotaSpec   `json:"spec"`         // @bingen:field[version=1]
-	Status       *ResourceQuotaStatus `json:"status"`       // @bingen:field[version=1]
+	UID          string               `json:"uid"`             // @bingen:field[version=1]
+	NamespaceUID string               `json:"namespaceUID"`    // @bingen:field[version=1]
+	Name         string               `json:"name"`            // @bingen:field[version=1]
+	Spec         *ResourceQuotaSpec   `json:"spec"`            // @bingen:field[version=1]
+	Status       *ResourceQuotaStatus `json:"status"`          // @bingen:field[version=1]
+	Start        time.Time            `json:"start,omitempty"` // @bingen:field[version=1]
+	End          time.Time            `json:"end,omitempty"`   // @bingen:field[version=1]
 }
 
 // @bingen:generate:ResourceQuotaSpec

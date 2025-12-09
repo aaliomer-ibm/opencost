@@ -64,9 +64,4 @@ type Service struct {
 	Selector map[string]string `json:"selector,omitempty"` // @bingen:field[version=1]
 	// Lifecycle tracking
 	DurationSeconds uint64 `json:"durationSeconds"` // @bingen:field[version=1] - Duration service existed within measurement window
-	// Version 2 fields - Network breakdown by destination type
-	NetworkInternetEgressBytes uint64 `json:"networkInternetEgressBytes,omitempty"` // @bingen:field[version=1]
-	NetworkCrossRegionBytes    uint64 `json:"networkCrossRegionBytes,omitempty"`    // @bingen:field[version=1]
-	NetworkSameRegionBytes     uint64 `json:"networkSameRegionBytes,omitempty"`     // @bingen:field[version=1]
-	NetworkIntraAZBytes        uint64 `json:"networkIntraAzBytes,omitempty"`        // @bingen:field[version=1]
 }

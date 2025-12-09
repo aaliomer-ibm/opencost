@@ -15,12 +15,6 @@ type Pod struct {
 	DurationSeconds      uint64            `json:"durationSeconds"`       // @bingen:field[version=1]
 	NetworkTransferBytes uint64            `json:"networkTransferBytes"`  // @bingen:field[version=1]
 	NetworkReceiveBytes  uint64            `json:"networkReceiveBytes"`   // @bingen:field[version=1]
-	// Version 2 fields - Lifecycle tracking
-	Start *time.Time `json:"start,omitempty"` // @bingen:field[version=1] - Pod creation/start timestamp
-	End   *time.Time `json:"end,omitempty"`   // @bingen:field[version=1] - Pod deletion/end timestamp (nil if still running)
-	// Version 2 fields - Network breakdown by destination type
-	NetworkInternetEgressBytes uint64 `json:"networkInternetEgressBytes,omitempty"` // @bingen:field[version=1]
-	NetworkCrossRegionBytes    uint64 `json:"networkCrossRegionBytes,omitempty"`    // @bingen:field[version=1]
-	NetworkSameRegionBytes     uint64 `json:"networkSameRegionBytes,omitempty"`     // @bingen:field[version=1]
-	NetworkIntraAZBytes        uint64 `json:"networkIntraAzBytes,omitempty"`        // @bingen:field[version=1]
+	Start                time.Time         `json:"start,omitempty"`       // @bingen:field[version=1] - Pod creation/start timestamp
+	End                  time.Time         `json:"end,omitempty"`         // @bingen:field[version=1] - Pod deletion/end timestamp (nil if still running)
 }

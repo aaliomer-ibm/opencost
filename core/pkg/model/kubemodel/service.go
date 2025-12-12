@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// @bingen:generate:ServiceType
 type ServiceType string
 
 const (
@@ -19,11 +18,11 @@ const (
 
 // @bingen:generate:ServicePort
 type ServicePort struct {
-	Name       string `json:"name"`       // @bingen:field[version=1]
-	Port       uint16 `json:"port"`       // @bingen:field[version=1]
-	TargetPort uint16 `json:"targetPort"` // @bingen:field[version=1]
-	NodePort   uint16 `json:"nodePort"`   // @bingen:field[version=1]
-	Protocol   string `json:"protocol"`   // @bingen:field[version=1]
+	Name       string `json:"name"`
+	Port       uint16 `json:"port"`
+	TargetPort uint16 `json:"targetPort"`
+	NodePort   uint16 `json:"nodePort"`
+	Protocol   string `json:"protocol"`
 }
 
 // @bingen:generate:Service

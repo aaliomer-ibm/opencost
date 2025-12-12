@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// @bingen:generate:OwnerKind
 type OwnerKind string
 
 const (

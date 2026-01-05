@@ -1,4 +1,3 @@
-//nolint:stylecheck // generated code and package conventions
 package kubemodel
 
 import (
@@ -124,12 +123,7 @@ func NewKubeModelSet(start time.Time, end time.Time) *KubeModelSet {
 	return kms
 }
 
-func (kms *KubeModelSet) RegisterNamespace(id string, name string) error {
-	uid, err := uuid.Parse(id)
-	if err != nil {
-		return fmt.Errorf("invalid namespace UID '%s': %w", id, err)
-	}
-
+func (kms *KubeModelSet) RegisterNamespace(uid uuid.UUID, name string) error {
 	if _, ok := kms.Namespaces[uid]; !ok {
 		if kms.Cluster == nil {
 			return errors.New("KubeModelSet missing Cluster")
@@ -167,7 +161,7 @@ func (kms *KubeModelSet) GetNamespaceByName(name string) (*Namespace, bool) {
 }
 
 // IsEmpty returns true if the KubeModelSet is nil, has no cluster, or contains no resources
-func (kms *KubeModelSet) IsEmpty() bool { //nolint:gocyclo // complexity acceptable for resource checking
+func (kms *KubeModelSet) IsEmpty() bool {
 	if kms == nil || kms.Cluster == nil {
 		return true
 	}
@@ -186,20 +180,15 @@ func (kms *KubeModelSet) IsEmpty() bool { //nolint:gocyclo // complexity accepta
 		len(kms.Volumes) == 0
 }
 
-func (kms *KubeModelSet) RegisterResourceQuota(uid, name, namespace string) error {
-	parsedUID, err := uuid.Parse(uid)
-	if err != nil {
-		return fmt.Errorf("invalid resource quota UID '%s': %w", uid, err)
-	}
-
-	if _, ok := kms.ResourceQuotas[parsedUID]; !ok {
+func (kms *KubeModelSet) RegisterResourceQuota(uid uuid.UUID, name, namespace string) error {
+	if _, ok := kms.ResourceQuotas[uid]; !ok {
 		nsUID, ok := kms.idx.namespaceNameToID[namespace]
 		if !ok {
 			return fmt.Errorf("KubeModelSet missing namespace '%s'", namespace)
 		}
 
-		kms.ResourceQuotas[parsedUID] = &ResourceQuota{
-			UID:          parsedUID,
+		kms.ResourceQuotas[uid] = &ResourceQuota{
+			UID:          uid,
 			Name:         name,
 			NamespaceUID: nsUID,
 			Spec:         &ResourceQuotaSpec{Hard: &ResourceQuotaSpecHard{}},
@@ -212,12 +201,7 @@ func (kms *KubeModelSet) RegisterResourceQuota(uid, name, namespace string) erro
 	return nil
 }
 
-func (kms *KubeModelSet) RegisterPod(id, name, namespace string) error {
-	uid, err := uuid.Parse(id)
-	if err != nil {
-		return fmt.Errorf("invalid pod UID '%s': %w", id, err)
-	}
-
+func (kms *KubeModelSet) RegisterPod(uid uuid.UUID, name, namespace string) error {
 	if _, ok := kms.Pods[uid]; !ok {
 		nsUID, ok := kms.idx.namespaceNameToID[namespace]
 		if !ok {
@@ -236,12 +220,7 @@ func (kms *KubeModelSet) RegisterPod(id, name, namespace string) error {
 	return nil
 }
 
-func (kms *KubeModelSet) RegisterNode(id, name string) error {
-	uid, err := uuid.Parse(id)
-	if err != nil {
-		return fmt.Errorf("invalid node UID '%s': %w", id, err)
-	}
-
+func (kms *KubeModelSet) RegisterNode(uid uuid.UUID, name string) error {
 	if _, ok := kms.Nodes[uid]; !ok {
 		if kms.Cluster == nil {
 			return errors.New("KubeModelSet missing Cluster")
@@ -259,12 +238,7 @@ func (kms *KubeModelSet) RegisterNode(id, name string) error {
 	return nil
 }
 
-func (kms *KubeModelSet) RegisterOwner(id, name, namespace, kind string) error {
-	uid, err := uuid.Parse(id)
-	if err != nil {
-		return fmt.Errorf("invalid owner UID '%s': %w", id, err)
-	}
-
+func (kms *KubeModelSet) RegisterOwner(uid uuid.UUID, name, namespace, kind string) error {
 	if _, ok := kms.Owners[uid]; !ok {
 		nsUID, ok := kms.idx.namespaceNameToID[namespace]
 		if !ok {
@@ -284,12 +258,7 @@ func (kms *KubeModelSet) RegisterOwner(id, name, namespace, kind string) error {
 	return nil
 }
 
-func (kms *KubeModelSet) RegisterService(id, name, namespace string) error {
-	uid, err := uuid.Parse(id)
-	if err != nil {
-		return fmt.Errorf("invalid service UID '%s': %w", id, err)
-	}
-
+func (kms *KubeModelSet) RegisterService(uid uuid.UUID, name, namespace string) error {
 	if _, ok := kms.Services[uid]; !ok {
 		if kms.Cluster == nil {
 			return errors.New("KubeModelSet missing Cluster")
@@ -313,12 +282,7 @@ func (kms *KubeModelSet) RegisterService(id, name, namespace string) error {
 	return nil
 }
 
-func (kms *KubeModelSet) RegisterPVC(id, name, namespace string) error {
-	uid, err := uuid.Parse(id)
-	if err != nil {
-		return fmt.Errorf("invalid PVC UID '%s': %w", id, err)
-	}
-
+func (kms *KubeModelSet) RegisterPVC(uid uuid.UUID, name, namespace string) error {
 	if _, ok := kms.PersistentVolumeClaims[uid]; !ok {
 		nsUID, ok := kms.idx.namespaceNameToID[namespace]
 		if !ok {
@@ -337,12 +301,7 @@ func (kms *KubeModelSet) RegisterPVC(id, name, namespace string) error {
 	return nil
 }
 
-func (kms *KubeModelSet) RegisterVolume(id, name string) error {
-	uid, err := uuid.Parse(id)
-	if err != nil {
-		return fmt.Errorf("invalid volume UID '%s': %w", id, err)
-	}
-
+func (kms *KubeModelSet) RegisterVolume(uid uuid.UUID, name string) error {
 	if _, ok := kms.Volumes[uid]; !ok {
 		if kms.Cluster == nil {
 			return errors.New("KubeModelSet missing Cluster")
@@ -360,18 +319,8 @@ func (kms *KubeModelSet) RegisterVolume(id, name string) error {
 	return nil
 }
 
-func (kms *KubeModelSet) RegisterContainer(id, name, podID string) error {
-	uid, err := uuid.Parse(id)
-	if err != nil {
-		return fmt.Errorf("invalid container UID '%s': %w", id, err)
-	}
-
+func (kms *KubeModelSet) RegisterContainer(uid uuid.UUID, name string, podUID uuid.UUID) error {
 	if _, ok := kms.Containers[uid]; !ok {
-		podUID, err := uuid.Parse(podID)
-		if err != nil {
-			return fmt.Errorf("invalid pod UID '%s': %w", podID, err)
-		}
-
 		kms.Containers[uid] = &Container{
 			PodUID:                    podUID,
 			Name:                      name,
@@ -385,18 +334,8 @@ func (kms *KubeModelSet) RegisterContainer(id, name, podID string) error {
 	return nil
 }
 
-func (kms *KubeModelSet) RegisterGPUDevice(id, nodeID string) error {
-	uid, err := uuid.Parse(id)
-	if err != nil {
-		return fmt.Errorf("invalid device UID '%s': %w", id, err)
-	}
-
+func (kms *KubeModelSet) RegisterDevice(uid uuid.UUID, nodeUID uuid.UUID) error {
 	if _, ok := kms.Devices[uid]; !ok {
-		nodeUID, err := uuid.Parse(nodeID)
-		if err != nil {
-			return fmt.Errorf("invalid node UID '%s': %w", nodeID, err)
-		}
-
 		kms.Devices[uid] = &Device{
 			UID:     uid,
 			NodeUID: nodeUID,
@@ -408,26 +347,13 @@ func (kms *KubeModelSet) RegisterGPUDevice(id, nodeID string) error {
 	return nil
 }
 
-func (kms *KubeModelSet) RegisterGPUUsage(id, containerID, gpuDeviceID string) error {
-	uid, err := uuid.Parse(id)
-	if err != nil {
-		return fmt.Errorf("invalid device usage UID '%s': %w", id, err)
-	}
+func (kms *KubeModelSet) RegisterUsage(id, containerID, deviceId uuid.UUID) error {
 
-	if _, ok := kms.DeviceUsages[uid]; !ok {
-		containerUID, err := uuid.Parse(containerID)
-		if err != nil {
-			return fmt.Errorf("invalid container UID '%s': %w", containerID, err)
-		}
+	if _, ok := kms.DeviceUsages[deviceId]; !ok {
 
-		deviceUID, err := uuid.Parse(gpuDeviceID)
-		if err != nil {
-			return fmt.Errorf("invalid device UID '%s': %w", gpuDeviceID, err)
-		}
-
-		kms.DeviceUsages[uid] = &DeviceUsage{
-			ContainerUID: containerUID,
-			DeviceUID:    deviceUID,
+		kms.DeviceUsages[deviceId] = &DeviceUsage{
+			ContainerUID: containerID,
+			DeviceUID:    deviceId,
 		}
 
 		kms.Metadata.ObjectCount++

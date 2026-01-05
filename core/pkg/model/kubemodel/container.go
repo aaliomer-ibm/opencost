@@ -1,4 +1,3 @@
-//nolint:stylecheck
 package kubemodel
 
 import (
@@ -22,8 +21,8 @@ type Container struct {
 	VolumeStorageByteUsageMax  map[uuid.UUID]uint64 `json:"volumeStorageByteUsageMax,omitempty"` // @bingen:field[version=1]
 	CpuMillicoreLimitSeconds   uint64               `json:"cpuMillicoreLimitSeconds,omitempty"`  // @bingen:field[version=1]
 	RAMKiBLimitSeconds         uint64               `json:"ramKiBLimitSeconds,omitempty"`        // @bingen:field[version=1]
-	Start                      time.Time            `json:"start,omitempty"`                     // @bingen:field[version=1]
-	End                        time.Time            `json:"end,omitempty"`                       // @bingen:field[version=1]
+	Start                      time.Time            `json:"start"`                               // @bingen:field[version=1]
+	End                        time.Time            `json:"end"`                                 // @bingen:field[version=1]
 }
 
 func (c *Container) CpuMillicoreUsageAverage() uint64 {
@@ -37,7 +36,7 @@ func (c *Container) RAMByteUsageAverage() uint64 {
 	if c.DurationSeconds == 0 {
 		return 0
 	}
-	return KiBToBytes(c.RAMKiBSeconds) / c.DurationSeconds
+	return KiBToBytes(c.RAMKiBSeconds / c.DurationSeconds)
 }
 
 func (c *Container) TotalStorageKiBSeconds() uint64 {
@@ -77,7 +76,7 @@ func (c *Container) RAMByteRequestAverage() uint64 {
 	if c.DurationSeconds == 0 {
 		return 0
 	}
-	return KiBToBytes(c.RAMKiBRequestSeconds) / c.DurationSeconds
+	return KiBToBytes(c.RAMKiBRequestSeconds / c.DurationSeconds)
 }
 
 func (c *Container) CpuMillicoreLimitAverage() uint64 {
@@ -91,5 +90,5 @@ func (c *Container) RAMByteLimitAverage() uint64 {
 	if c.DurationSeconds == 0 {
 		return 0
 	}
-	return KiBToBytes(c.RAMKiBLimitSeconds) / c.DurationSeconds
+	return KiBToBytes(c.RAMKiBLimitSeconds / c.DurationSeconds)
 }

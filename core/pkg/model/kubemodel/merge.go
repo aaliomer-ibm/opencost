@@ -1,4 +1,3 @@
-//nolint:stylecheck,gocyclo
 package kubemodel
 
 import (

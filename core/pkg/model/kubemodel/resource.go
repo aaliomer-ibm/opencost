@@ -1,4 +1,3 @@
-//nolint:stylecheck // generated code and package conventions
 package kubemodel
 
 // @bingen:generate:ResourceQuantities
@@ -16,7 +15,7 @@ package kubemodel
 // - CPU: millicores (1000m = 1 core)
 // - Memory/Storage: bytes
 // - Counts: number of objects
-// - Extended resources: vendor-specific units (e.g., GPU count)
+// - Extended resources: vendor-specific units (e.g., Device count)
 type ResourceQuantities struct {
 	// Standard compute resources with explicit units
 	CPUMillicores uint64 `json:"cpu,omitempty"`    // @bingen:field[version=1] - CPU quota in millicores (e.g., 1000 = 1 core)
@@ -45,13 +44,13 @@ type ResourceQuantities struct {
 	// Value: maximum number of PVCs for that storage class
 	PVCsByClass map[string]uint64 `json:"pvcsByClass,omitempty"` // @bingen:field[version=1]
 
-	// Extended resources (GPUs, FPGAs, custom hardware, etc.)
+	// Extended resources (Devices, FPGAs, custom hardware, etc.)
 	// Map because extended resources are cluster-specific and dynamically defined
-	// Key: resource name with domain prefix (e.g., "nvidia.com/gpu", "amd.com/gpu", "intel.com/fpga")
+	// Key: resource name with domain prefix (e.g., "nvidia.com/device", "amd.com/device", "intel.com/fpga")
 	// Value: quantity of that extended resource
 	// Examples:
-	//   - "nvidia.com/gpu": 4 (4 NVIDIA GPUs)
-	//   - "amd.com/gpu": 2 (2 AMD GPUs)
+	//   - "nvidia.com/device": 4 (4 NVIDIA Devices)
+	//   - "amd.com/device": 2 (2 AMD Devices)
 	//   - "intel.com/fpga": 1 (1 Intel FPGA)
 	//   - "example.com/dongle": 10 (10 custom dongles)
 	ExtendedResources map[string]uint64 `json:"extendedResources,omitempty"` // @bingen:field[version=1]

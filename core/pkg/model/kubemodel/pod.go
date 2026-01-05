@@ -6,7 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// @bingen:generate:Pod
 type Pod struct {
 	UID                  uuid.UUID         `json:"uid"`                   // @bingen:field[version=1]
 	NamespaceUID         uuid.UUID         `json:"namespaceUid"`          // @bingen:field[version=1]

@@ -56,12 +56,12 @@ type Service struct {
 	Ports                []ServicePort     `json:"ports,omitempty"`       // @bingen:field[version=1]
 	Start                time.Time         `json:"start"`                 // @bingen:field[version=1]
 	End                  time.Time         `json:"end"`                   // @bingen:field[version=1]
-	NetworkTransferBytes uint64            `json:"networkTransferBytes"`  // @bingen:field[version=1]
-	NetworkReceiveBytes  uint64            `json:"networkReceiveBytes"`   // @bingen:field[version=1]
+	NetworkTransferBytes Measurement       `json:"networkTransferBytes"`  // @bingen:field[version=1]
+	NetworkReceiveBytes  Measurement       `json:"networkReceiveBytes"`   // @bingen:field[version=1]
 	// Label selector to identify pods/containers targeted by this service
 	// Maps label keys to values (e.g., {"app": "nginx", "tier": "frontend"})
 	// Pods with matching labels will receive traffic from this service
 	Selector map[string]string `json:"selector,omitempty"` // @bingen:field[version=1]
 	// Lifecycle tracking
-	DurationSeconds uint64 `json:"durationSeconds"` // @bingen:field[version=1] - Duration service existed within measurement window
+	DurationSeconds Measurement `json:"durationSeconds"` // @bingen:field[version=1] - Duration service existed within measurement window
 }

@@ -16,7 +16,7 @@ type PersistentVolume struct {
 	Labels       map[string]string `json:"labels,omitempty"`      // @bingen:field[version=1]
 	Annotations  map[string]string `json:"annotations,omitempty"` // @bingen:field[version=1]
 	StorageClass string            `json:"storageClass"`          // @bingen:field[version=1]
-	SizeBytes    uint64            `json:"size"`                  // @bingen:field[version=1]
+	SizeBytes    Measurement       `json:"size"`                  // @bingen:field[version=1]
 	// awsElasticBlockStore, azureDisk, gcePersistentDisk, csi, nfs, local, etc.
 	Type string `json:"type,omitempty"` // @bingen:field[version=1]
 	// ebs.csi.aws.com, disk.csi.azure.com, etc.
@@ -35,11 +35,11 @@ type PersistentVolume struct {
 	Start time.Time `json:"start"`         // @bingen:field[version=1] - Volume creation timestamp
 	End   time.Time `json:"end,omitempty"` // @bingen:field[version=1] - Volume deletion timestamp (nil if still active)
 	// Duration volume existed within measurement window
-	DurationSeconds uint64 `json:"durationSeconds"` // @bingen:field[version=1]
+	DurationSeconds Measurement `json:"durationSeconds"` // @bingen:field[version=1]
 	// JSON-encoded node affinity for local volumes
 	NodeAffinity string `json:"nodeAffinity,omitempty"` // @bingen:field[version=1]
 	// Storage performance characteristics
-	ProvisionedIOPS       uint64 `json:"provisionedIops,omitempty"`       // @bingen:field[version=1] - Provisioned IOPS (AWS io1/io2, Azure Premium)
-	ProvisionedThroughput uint64 `json:"provisionedThroughput,omitempty"` // @bingen:field[version=1] - Provisioned throughput in MB/s
-	PerformanceMode       string `json:"performanceMode,omitempty"`       // @bingen:field[version=1] - "generalPurpose", "maxIO", "provisioned"
+	ProvisionedIOPS       Measurement `json:"provisionedIops,omitempty"`       // @bingen:field[version=1] - Provisioned IOPS (AWS io1/io2, Azure Premium)
+	ProvisionedThroughput Measurement `json:"provisionedThroughput,omitempty"` // @bingen:field[version=1] - Provisioned throughput in MB/s
+	PerformanceMode       string      `json:"performanceMode,omitempty"`       // @bingen:field[version=1] - "generalPurpose", "maxIO", "provisioned"
 }

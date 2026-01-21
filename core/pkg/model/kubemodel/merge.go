@@ -37,7 +37,7 @@ func Merge(kms1, kms2 *KubeModelSet) (*KubeModelSet, error) {
 
 	merged := NewKubeModelSet(windowStart, windowEnd)
 	if windowEnd.After(windowStart) {
-		merged.Window.DurationSeconds = uint64(windowEnd.Sub(windowStart).Seconds())
+		merged.Window.DurationSeconds = Measurement(windowEnd.Sub(windowStart).Seconds())
 	}
 
 	if kms1.Metadata != nil && kms2.Metadata != nil {
@@ -124,7 +124,7 @@ func mergeNodes(merged, kms1, kms2 *KubeModelSet) {
 	for uid, node2 := range kms2.Nodes {
 		if node1, exists := merged.Nodes[uid]; exists {
 			node1.CpuMillicoreSeconds += node2.CpuMillicoreSeconds
-			node1.RAMKiBSeconds += node2.RAMKiBSeconds
+			node1.RAMByteSeconds += node2.RAMByteSeconds
 			node1.CpuMillicoreUsageMax = max(node1.CpuMillicoreUsageMax, node2.CpuMillicoreUsageMax)
 			node1.RAMByteUsageMax = max(node1.RAMByteUsageMax, node2.RAMByteUsageMax)
 			node1.DurationSeconds += node2.DurationSeconds
@@ -138,19 +138,19 @@ func mergeNodes(merged, kms1, kms2 *KubeModelSet) {
 
 			for volumeUID, volume2 := range node2.AttachedVolumes {
 				if volume1, exists := node1.AttachedVolumes[volumeUID]; exists {
-					volume1.UsageKiBSeconds += volume2.UsageKiBSeconds
+					volume1.UsageByteSeconds += volume2.UsageByteSeconds
 					volume1.DurationSeconds += volume2.DurationSeconds
 					if volume2.CapacityBytes > volume1.CapacityBytes {
 						volume1.CapacityBytes = volume2.CapacityBytes
 					}
 				} else {
 					node1.AttachedVolumes[volumeUID] = &NodeVolumeUsage{
-						VolumeUID:       volume2.VolumeUID,
-						CapacityBytes:   volume2.CapacityBytes,
-						UsageKiBSeconds: volume2.UsageKiBSeconds,
-						VolumeType:      volume2.VolumeType,
-						ProviderID:      volume2.ProviderID,
-						DurationSeconds: volume2.DurationSeconds,
+						VolumeUID:        volume2.VolumeUID,
+						CapacityBytes:    volume2.CapacityBytes,
+						UsageByteSeconds: volume2.UsageByteSeconds,
+						VolumeType:       volume2.VolumeType,
+						ProviderID:       volume2.ProviderID,
+						DurationSeconds:  volume2.DurationSeconds,
 					}
 				}
 			}
@@ -193,12 +193,12 @@ func mergeContainers(merged, kms1, kms2 *KubeModelSet) {
 	for uid, container2 := range kms2.Containers {
 		if container1, exists := merged.Containers[uid]; exists {
 			container1.CpuMillicoreSeconds += container2.CpuMillicoreSeconds
-			container1.RAMKiBSeconds += container2.RAMKiBSeconds
+			container1.RAMByteSeconds += container2.RAMByteSeconds
 			container1.CpuMillicoreUsageMax = max(container1.CpuMillicoreUsageMax, container2.CpuMillicoreUsageMax)
 			container1.RAMByteUsageMax = max(container1.RAMByteUsageMax, container2.RAMByteUsageMax)
 
-			for volumeUID, kibSeconds := range container2.VolumeStorageKiBSeconds {
-				container1.VolumeStorageKiBSeconds[volumeUID] += kibSeconds
+			for volumeUID, ByteSeconds := range container2.VolumeStorageByteSeconds {
+				container1.VolumeStorageByteSeconds[volumeUID] += ByteSeconds
 			}
 			for volumeUID, usageMax := range container2.VolumeStorageByteUsageMax {
 				if currentMax, exists := container1.VolumeStorageByteUsageMax[volumeUID]; exists {
@@ -293,8 +293,8 @@ func mergePVCs(merged, kms1, kms2 *KubeModelSet) {
 	}
 	for uid, pvc2 := range kms2.PersistentVolumeClaims {
 		if pvc1, exists := merged.PersistentVolumeClaims[uid]; exists {
-			pvc1.StorageKiBSeconds += pvc2.StorageKiBSeconds
-			pvc1.ActualUsedKiBSeconds += pvc2.ActualUsedKiBSeconds
+			pvc1.StorageByteSeconds += pvc2.StorageByteSeconds
+			pvc1.ActualUsedByteSeconds += pvc2.ActualUsedByteSeconds
 			pvc1.DurationSeconds += pvc2.DurationSeconds
 
 			if pvc2.Start.Before(pvc1.Start) {
@@ -321,7 +321,7 @@ func mergeDevices(merged, kms1, kms2 *KubeModelSet) {
 	for uid, dev2 := range kms2.Devices {
 		if dev1, exists := merged.Devices[uid]; exists {
 			dev1.UsageSeconds += dev2.UsageSeconds
-			dev1.MemoryKiBSeconds += dev2.MemoryKiBSeconds
+			dev1.MemoryByteSeconds += dev2.MemoryByteSeconds
 			dev1.PowerWattSeconds += dev2.PowerWattSeconds
 			dev1.PowerWattMax = math.Max(dev1.PowerWattMax, dev2.PowerWattMax)
 			dev1.DurationSeconds += dev2.DurationSeconds
@@ -347,7 +347,7 @@ func mergeDeviceUsages(merged, kms1, kms2 *KubeModelSet) {
 	for uid, usage2 := range kms2.DeviceUsages {
 		if usage1, exists := merged.DeviceUsages[uid]; exists {
 			usage1.UsageSeconds += usage2.UsageSeconds
-			usage1.MemoryKiBSecondsUsed += usage2.MemoryKiBSecondsUsed
+			usage1.MemoryByteSecondsUsed += usage2.MemoryByteSecondsUsed
 			usage1.UsagePercentageMax = math.Max(usage1.UsagePercentageMax, usage2.UsagePercentageMax)
 		} else {
 			merged.DeviceUsages[uid] = copyDeviceUsage(usage2)
@@ -419,7 +419,7 @@ func copyNode(node *Node) *Node {
 		Labels:               maps.Clone(node.Labels),
 		Annotations:          maps.Clone(node.Annotations),
 		CpuMillicoreSeconds:  node.CpuMillicoreSeconds,
-		RAMKiBSeconds:        node.RAMKiBSeconds,
+		RAMByteSeconds:       node.RAMByteSeconds,
 		CpuMillicoreUsageMax: node.CpuMillicoreUsageMax,
 		RAMByteUsageMax:      node.RAMByteUsageMax,
 		DurationSeconds:      node.DurationSeconds,
@@ -430,12 +430,12 @@ func copyNode(node *Node) *Node {
 
 	for volumeUID, volume := range node.AttachedVolumes {
 		copied.AttachedVolumes[volumeUID] = &NodeVolumeUsage{
-			VolumeUID:       volume.VolumeUID,
-			CapacityBytes:   volume.CapacityBytes,
-			UsageKiBSeconds: volume.UsageKiBSeconds,
-			VolumeType:      volume.VolumeType,
-			ProviderID:      volume.ProviderID,
-			DurationSeconds: volume.DurationSeconds,
+			VolumeUID:        volume.VolumeUID,
+			CapacityBytes:    volume.CapacityBytes,
+			UsageByteSeconds: volume.UsageByteSeconds,
+			VolumeType:       volume.VolumeType,
+			ProviderID:       volume.ProviderID,
+			DurationSeconds:  volume.DurationSeconds,
 		}
 	}
 
@@ -464,10 +464,10 @@ func copyContainer(container *Container) *Container {
 		PodUID:                     container.PodUID,
 		Name:                       container.Name,
 		CpuMillicoreSeconds:        container.CpuMillicoreSeconds,
-		RAMKiBSeconds:              container.RAMKiBSeconds,
+		RAMByteSeconds:             container.RAMByteSeconds,
 		CpuMillicoreUsageMax:       container.CpuMillicoreUsageMax,
 		RAMByteUsageMax:            container.RAMByteUsageMax,
-		VolumeStorageKiBSeconds:    maps.Clone(container.VolumeStorageKiBSeconds),
+		VolumeStorageByteSeconds:   maps.Clone(container.VolumeStorageByteSeconds),
 		VolumeStorageByteUsageMax:  maps.Clone(container.VolumeStorageByteUsageMax),
 		DurationSeconds:            container.DurationSeconds,
 		CpuMillicoreRequestSeconds: container.CpuMillicoreRequestSeconds,
@@ -539,22 +539,22 @@ func copyVolume(vol *PersistentVolume) *PersistentVolume {
 
 func copyPVC(pvc *PersistentVolumeClaim) *PersistentVolumeClaim {
 	copied := &PersistentVolumeClaim{
-		UID:                  pvc.UID,
-		NamespaceUID:         pvc.NamespaceUID,
-		Name:                 pvc.Name,
-		Labels:               maps.Clone(pvc.Labels),
-		Annotations:          maps.Clone(pvc.Annotations),
-		StorageClass:         pvc.StorageClass,
-		StorageKiBSeconds:    pvc.StorageKiBSeconds,
-		RequestedBytes:       pvc.RequestedBytes,
-		Size:                 pvc.Size,
-		VolumeName:           pvc.VolumeName,
-		AccessModes:          slices.Clone(pvc.AccessModes),
-		Start:                pvc.Start,
-		End:                  pvc.End,
-		BoundAt:              pvc.BoundAt,
-		DurationSeconds:      pvc.DurationSeconds,
-		ActualUsedKiBSeconds: pvc.ActualUsedKiBSeconds,
+		UID:                   pvc.UID,
+		NamespaceUID:          pvc.NamespaceUID,
+		Name:                  pvc.Name,
+		Labels:                maps.Clone(pvc.Labels),
+		Annotations:           maps.Clone(pvc.Annotations),
+		StorageClass:          pvc.StorageClass,
+		StorageByteSeconds:    pvc.StorageByteSeconds,
+		RequestedBytes:        pvc.RequestedBytes,
+		Size:                  pvc.Size,
+		VolumeName:            pvc.VolumeName,
+		AccessModes:           slices.Clone(pvc.AccessModes),
+		Start:                 pvc.Start,
+		End:                   pvc.End,
+		BoundAt:               pvc.BoundAt,
+		DurationSeconds:       pvc.DurationSeconds,
+		ActualUsedByteSeconds: pvc.ActualUsedByteSeconds,
 	}
 	if pvc.VolumeUID != nil {
 		volumeUID := *pvc.VolumeUID
@@ -569,31 +569,31 @@ func copyPVC(pvc *PersistentVolumeClaim) *PersistentVolumeClaim {
 
 func copyDevice(dev *Device) *Device {
 	return &Device{
-		UID:              dev.UID,
-		Type:             dev.Type,
-		NodeUID:          dev.NodeUID,
-		DeviceNumber:     dev.DeviceNumber,
-		ModelName:        dev.ModelName,
-		IsShared:         dev.IsShared,
-		SharePercentage:  dev.SharePercentage,
-		UsageSeconds:     dev.UsageSeconds,
-		MemoryKiBSeconds: dev.MemoryKiBSeconds,
-		PowerWattSeconds: dev.PowerWattSeconds,
-		PowerWattMax:     dev.PowerWattMax,
-		DurationSeconds:  dev.DurationSeconds,
-		Start:            dev.Start,
-		End:              dev.End,
+		UID:               dev.UID,
+		Type:              dev.Type,
+		NodeUID:           dev.NodeUID,
+		DeviceNumber:      dev.DeviceNumber,
+		ModelName:         dev.ModelName,
+		IsShared:          dev.IsShared,
+		SharePercentage:   dev.SharePercentage,
+		UsageSeconds:      dev.UsageSeconds,
+		MemoryByteSeconds: dev.MemoryByteSeconds,
+		PowerWattSeconds:  dev.PowerWattSeconds,
+		PowerWattMax:      dev.PowerWattMax,
+		DurationSeconds:   dev.DurationSeconds,
+		Start:             dev.Start,
+		End:               dev.End,
 	}
 }
 
 func copyDeviceUsage(usage *DeviceUsage) *DeviceUsage {
 	return &DeviceUsage{
-		ContainerUID:         usage.ContainerUID,
-		DeviceUID:            usage.DeviceUID,
-		UsageSeconds:         usage.UsageSeconds,
-		UsagePercentageMax:   usage.UsagePercentageMax,
-		MemoryKiBSecondsUsed: usage.MemoryKiBSecondsUsed,
-		Start:                usage.Start,
-		End:                  usage.End,
+		ContainerUID:          usage.ContainerUID,
+		DeviceUID:             usage.DeviceUID,
+		UsageSeconds:          usage.UsageSeconds,
+		UsagePercentageMax:    usage.UsagePercentageMax,
+		MemoryByteSecondsUsed: usage.MemoryByteSecondsUsed,
+		Start:                 usage.Start,
+		End:                   usage.End,
 	}
 }

@@ -118,7 +118,7 @@ func NewKubeModelSet(start time.Time, end time.Time) *KubeModelSet {
 	}
 	// Set the window duration
 	if end.After(start) {
-		kms.Window.DurationSeconds = uint64(end.Sub(start).Seconds())
+		kms.Window.DurationSeconds = Measurement(end.Sub(start).Seconds())
 	}
 	return kms
 }
@@ -324,8 +324,8 @@ func (kms *KubeModelSet) RegisterContainer(uid uuid.UUID, name string, podUID uu
 		kms.Containers[uid] = &Container{
 			PodUID:                    podUID,
 			Name:                      name,
-			VolumeStorageKiBSeconds:   make(map[uuid.UUID]uint64),
-			VolumeStorageByteUsageMax: make(map[uuid.UUID]uint64),
+			VolumeStorageByteSeconds:  make(map[uuid.UUID]Measurement),
+			VolumeStorageByteUsageMax: make(map[uuid.UUID]Measurement),
 		}
 
 		kms.Metadata.ObjectCount++

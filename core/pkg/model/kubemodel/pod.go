@@ -14,9 +14,9 @@ type Pod struct {
 	Name                 string            `json:"name"`                  // @bingen:field[version=1]
 	Labels               map[string]string `json:"labels,omitempty"`      // @bingen:field[version=1]
 	Annotations          map[string]string `json:"annotations,omitempty"` // @bingen:field[version=1]
-	DurationSeconds      uint64            `json:"durationSeconds"`       // @bingen:field[version=1]
-	NetworkTransferBytes uint64            `json:"networkTransferBytes"`  // @bingen:field[version=1]
-	NetworkReceiveBytes  uint64            `json:"networkReceiveBytes"`   // @bingen:field[version=1]
+	DurationSeconds      Measurement       `json:"durationSeconds"`       // @bingen:field[version=1]
+	NetworkTransferBytes Measurement       `json:"networkTransferBytes"`  // @bingen:field[version=1]
+	NetworkReceiveBytes  Measurement       `json:"networkReceiveBytes"`   // @bingen:field[version=1]
 	Start                time.Time         `json:"start,omitempty"`       // @bingen:field[version=1] - Pod creation/start timestamp
 	End                  time.Time         `json:"end,omitempty"`         // @bingen:field[version=1] - Pod deletion/end timestamp (nil if still running)
 }

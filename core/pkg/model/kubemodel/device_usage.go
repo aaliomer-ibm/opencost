@@ -10,15 +10,15 @@ import (
 
 // @bingen:generate:DeviceUsage
 type DeviceUsage struct {
-	ContainerUID         uuid.UUID `json:"containerUid"`              // @bingen:field[version=1]
-	DeviceUID            uuid.UUID `json:"deviceUid"`                 // @bingen:field[version=1]
-	UsageSeconds         uint64    `json:"usageSeconds"`              // @bingen:field[version=1]
-	UsagePercentageMax   float64   `json:"usagePercentageMax"`        // @bingen:field[version=1]
-	MemoryKiBSecondsUsed uint64    `json:"memoryKiBSecondsUsed"`      // @bingen:field[version=1]
-	DeviceType           string    `json:"deviceType,omitempty"`      // @bingen:field[version=1]
-	DurationSeconds      uint64    `json:"durationSeconds,omitempty"` // @bingen:field[version=1]
-	Start                time.Time `json:"start"`                     // @bingen:field[version=1]
-	End                  time.Time `json:"end"`                       // @bingen:field[version=1]
+	ContainerUID          uuid.UUID   `json:"containerUid"`              // @bingen:field[version=1]
+	DeviceUID             uuid.UUID   `json:"deviceUid"`                 // @bingen:field[version=1]
+	UsageSeconds          Measurement `json:"usageSeconds"`              // @bingen:field[version=1]
+	UsagePercentageMax    float64     `json:"usagePercentageMax"`        // @bingen:field[version=1]
+	MemoryByteSecondsUsed Measurement `json:"memoryByteSecondsUsed"`     // @bingen:field[version=1]
+	DeviceType            string      `json:"deviceType,omitempty"`      // @bingen:field[version=1]
+	DurationSeconds       Measurement `json:"durationSeconds,omitempty"` // @bingen:field[version=1]
+	Start                 time.Time   `json:"start"`                     // @bingen:field[version=1]
+	End                   time.Time   `json:"end"`                       // @bingen:field[version=1]
 }
 
 func (u *DeviceUsage) Validate() error {
@@ -40,30 +40,30 @@ func (u *DeviceUsage) Clone() *DeviceUsage {
 	}
 
 	cloned := &DeviceUsage{
-		ContainerUID:         u.ContainerUID,
-		DeviceUID:            u.DeviceUID,
-		UsageSeconds:         u.UsageSeconds,
-		UsagePercentageMax:   u.UsagePercentageMax,
-		MemoryKiBSecondsUsed: u.MemoryKiBSecondsUsed,
-		DeviceType:           u.DeviceType,
-		DurationSeconds:      u.DurationSeconds,
-		Start:                u.Start,
-		End:                  u.End,
+		ContainerUID:          u.ContainerUID,
+		DeviceUID:             u.DeviceUID,
+		UsageSeconds:          u.UsageSeconds,
+		UsagePercentageMax:    u.UsagePercentageMax,
+		MemoryByteSecondsUsed: u.MemoryByteSecondsUsed,
+		DeviceType:            u.DeviceType,
+		DurationSeconds:       u.DurationSeconds,
+		Start:                 u.Start,
+		End:                   u.End,
 	}
 
 	return cloned
 }
 
-func (u *DeviceUsage) UsageAverage() uint64 {
+func (u *DeviceUsage) UsageAverage() Measurement {
 	if u.DurationSeconds == 0 {
 		return 0
 	}
 	return (u.UsageSeconds / u.DurationSeconds) * 100
 }
 
-func (u *DeviceUsage) MemoryByteUsageAverage() uint64 {
+func (u *DeviceUsage) MemoryByteUsageAverage() Measurement {
 	if u.DurationSeconds == 0 {
 		return 0
 	}
-	return KiBToBytes(u.MemoryKiBSecondsUsed) / u.DurationSeconds
+	return KiBToBytes(u.MemoryByteSecondsUsed) / u.DurationSeconds
 }

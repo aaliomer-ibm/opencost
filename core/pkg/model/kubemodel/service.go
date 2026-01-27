@@ -41,7 +41,6 @@ type ServicePort struct {
 // Total Service Cost = (LB hours × hourly rate) + (LCU hours × LCU rate) + (NetworkTransferBytes × transfer rate)
 type Service struct {
 	UID                  string            `json:"uid"`
-	ClusterUID           string            `json:"clusterUid"`
 	NamespaceUID         string            `json:"namespaceUid"`
 	Name                 string            `json:"name"`
 	Type                 ServiceType       `json:"type"`

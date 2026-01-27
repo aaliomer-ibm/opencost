@@ -204,7 +204,6 @@ func (kms *KubeModelSet) RegisterService(uid string, name, namespace string) err
 
 		kms.Services[uid] = &Service{
 			UID:          uid,
-			ClusterUID:   kms.Cluster.UID,
 			NamespaceUID: nsUID,
 			Name:         name,
 		}

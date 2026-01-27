@@ -523,7 +523,6 @@ func copyOwner(owner *Owner) *Owner {
 func copyService(svc *Service) *Service {
 	return &Service{
 		UID:                  svc.UID,
-		ClusterUID:           svc.ClusterUID,
 		NamespaceUID:         svc.NamespaceUID,
 		Name:                 svc.Name,
 		Type:                 svc.Type,

@@ -16,12 +16,12 @@ const (
 // Owner represents a Kubernetes resource owner (workload controller)
 // @bingen:generate:Owner
 type Owner struct {
-	UID          string            `json:"uid"`                   // @bingen:field[version=1]
-	NamespaceUID string            `json:"namespaceUid"`          // @bingen:field[version=1]
-	Name         string            `json:"name"`                  // @bingen:field[version=1]
-	Kind         OwnerKind         `json:"kind"`                  // @bingen:field[version=1]
-	Labels       map[string]string `json:"labels,omitempty"`      // @bingen:field[version=1]
-	Annotations  map[string]string `json:"annotations,omitempty"` // @bingen:field[version=1]
-	Start        time.Time         `json:"start,omitempty"`       // @bingen:field[version=1] - Owner creation/start timestamp
-	End          time.Time         `json:"end,omitempty"`         // @bingen:field[version=1] - Owner deletion/end timestamp (nil if still active)
+	UID          string            `json:"uid"`
+	NamespaceUID string            `json:"namespaceUid"`
+	Name         string            `json:"name"`
+	Kind         OwnerKind         `json:"kind"`
+	Labels       map[string]string `json:"labels,omitempty"`
+	Annotations  map[string]string `json:"annotations,omitempty"`
+	Start        time.Time         `json:"start,omitempty"`
+	End          time.Time         `json:"end,omitempty"`
 }

@@ -8,21 +8,21 @@ import (
 
 // @bingen:generate:Device
 type Device struct {
-	UID               string      `json:"uid"`               // @bingen:field[version=1] Device UUID (hardware identifier)
-	Type              string      `json:"type,omitempty"`    // @bingen:field[version=1] Device type (e.g., "device", "tpu")
-	NodeUID           string      `json:"nodeUid"`           // @bingen:field[version=1] Node hosting this device
-	DeviceNumber      int32       `json:"deviceNumber"`      // @bingen:field[version=1]
-	ModelName         string      `json:"modelName"`         // @bingen:field[version=1]
-	IsShared          bool        `json:"isShared"`          // @bingen:field[version=1] Device sharing information
-	SharePercentage   float64     `json:"sharePercentage"`   // @bingen:field[version=1]
-	UsageSeconds      float64     `json:"usageSeconds"`      // @bingen:field[version=1] Device seconds available
-	MemoryByteSeconds Measurement `json:"memoryByteSeconds"` // @bingen:field[version=1] Device memory capacity in KiB-seconds
-	PowerWattSeconds  float64     `json:"powerWattSeconds"`  // @bingen:field[version=1] Device power consumption in watt-seconds (Joules)
-	PowerWattMax      float64     `json:"powerWattMax"`      // @bingen:field[version=1] Device max power consumption in watts
+	UID               string      `json:"uid"`            // Device UUID (hardware identifier)
+	Type              string      `json:"type,omitempty"` // Device type (e.g., "device", "tpu")
+	NodeUID           string      `json:"nodeUid"`        // Node hosting this device
+	DeviceNumber      int32       `json:"deviceNumber"`
+	ModelName         string      `json:"modelName"`
+	IsShared          bool        `json:"isShared"` // Device sharing information
+	SharePercentage   float64     `json:"sharePercentage"`
+	UsageSeconds      float64     `json:"usageSeconds"`      // Device seconds available
+	MemoryByteSeconds Measurement `json:"memoryByteSeconds"` // Device memory capacity in KiB-seconds
+	PowerWattSeconds  float64     `json:"powerWattSeconds"`  // Device power consumption in watt-seconds (Joules)
+	PowerWattMax      float64     `json:"powerWattMax"`      // Device max power consumption in watts
 	// Version 2 fields - Lifecycle tracking
-	Start           time.Time   `json:"start,omitempty"` // @bingen:field[version=1] - Device availability start
-	End             time.Time   `json:"end,omitempty"`   // @bingen:field[version=1] - Device availability end
-	DurationSeconds Measurement `json:"durationSeconds"` // @bingen:field[version=1] - Duration device was available
+	Start           time.Time   `json:"start,omitempty"` // Device availability start
+	End             time.Time   `json:"end,omitempty"`   // Device availability end
+	DurationSeconds Measurement `json:"durationSeconds"` // Duration device was available
 }
 
 // Validate validates the Device fields

@@ -8,15 +8,15 @@ import (
 
 // @bingen:generate:DeviceUsage
 type DeviceUsage struct {
-	ContainerUID          string      `json:"containerUid"`              // @bingen:field[version=1]
-	DeviceUID             string      `json:"deviceUid"`                 // @bingen:field[version=1]
-	UsageSeconds          Measurement `json:"usageSeconds"`              // @bingen:field[version=1]
-	UsagePercentageMax    float64     `json:"usagePercentageMax"`        // @bingen:field[version=1]
-	MemoryByteSecondsUsed Measurement `json:"memoryByteSecondsUsed"`     // @bingen:field[version=1]
-	DeviceType            string      `json:"deviceType,omitempty"`      // @bingen:field[version=1]
-	DurationSeconds       Measurement `json:"durationSeconds,omitempty"` // @bingen:field[version=1]
-	Start                 time.Time   `json:"start"`                     // @bingen:field[version=1]
-	End                   time.Time   `json:"end"`                       // @bingen:field[version=1]
+	ContainerUID          string      `json:"containerUid"`
+	DeviceUID             string      `json:"deviceUid"`
+	UsageSeconds          Measurement `json:"usageSeconds"`
+	UsagePercentageMax    float64     `json:"usagePercentageMax"`
+	MemoryByteSecondsUsed Measurement `json:"memoryByteSecondsUsed"`
+	DeviceType            string      `json:"deviceType,omitempty"`
+	DurationSeconds       Measurement `json:"durationSeconds,omitempty"`
+	Start                 time.Time   `json:"start"`
+	End                   time.Time   `json:"end"`
 }
 
 func (u *DeviceUsage) Validate() error {

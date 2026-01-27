@@ -7,30 +7,30 @@ import "time"
 // All resource measures (CPU, RAM) represent node capacity, not requests or limits.
 // This aligns with the principle that cost allocation should be based on provisioned capacity.
 type Node struct {
-	UID                  string                      `json:"uid"`                       // @bingen:field[version=1]
-	ProviderResourceUID  string                      `json:"providerResourceUid"`       // @bingen:field[version=1]
-	Name                 string                      `json:"name"`                      // @bingen:field[version=1]
-	Labels               map[string]string           `json:"labels,omitempty"`          // @bingen:field[version=1]
-	Annotations          map[string]string           `json:"annotations,omitempty"`     // @bingen:field[version=1]
-	DurationSeconds      Measurement                 `json:"durationSeconds"`           // @bingen:field[version=1]
-	CpuMillicoreSeconds  Measurement                 `json:"cpuMillicoreSeconds"`       // @bingen:field[version=1] - Node CPU capacity in millicore-seconds
-	RAMByteSeconds       Measurement                 `json:"ramByteSeconds"`            // @bingen:field[version=1] - Node RAM capacity in KiB-seconds
-	AttachedVolumes      map[string]*NodeVolumeUsage `json:"attachedVolumes,omitempty"` // @bingen:field[version=1]
-	CpuMillicoreUsageMax Measurement                 `json:"cpuMillicoreUsageMax"`      // @bingen:field[version=1] - Peak CPU usage observed
-	RAMByteUsageMax      Measurement                 `json:"ramByteUsageMax"`           // @bingen:field[version=1] - Peak RAM usage observed
-	Start                time.Time                   `json:"start,omitempty"`           // @bingen:field[version=1] - Node creation/start timestamp
-	End                  time.Time                   `json:"end,omitempty"`             // @bingen:field[version=1] - Node deletion/end timestamp (nil if still running)
+	UID                  string                      `json:"uid"`
+	ProviderResourceUID  string                      `json:"providerResourceUid"`
+	Name                 string                      `json:"name"`
+	Labels               map[string]string           `json:"labels,omitempty"`
+	Annotations          map[string]string           `json:"annotations,omitempty"`
+	DurationSeconds      Measurement                 `json:"durationSeconds"`
+	CpuMillicoreSeconds  Measurement                 `json:"cpuMillicoreSeconds"` // Node CPU capacity in millicore-seconds
+	RAMByteSeconds       Measurement                 `json:"ramByteSeconds"`      // Node RAM capacity in KiB-seconds
+	AttachedVolumes      map[string]*NodeVolumeUsage `json:"attachedVolumes,omitempty"`
+	CpuMillicoreUsageMax Measurement                 `json:"cpuMillicoreUsageMax"` // Peak CPU usage observed
+	RAMByteUsageMax      Measurement                 `json:"ramByteUsageMax"`      // Peak RAM usage observed
+	Start                time.Time                   `json:"start,omitempty"`      // Node creation/start timestamp
+	End                  time.Time                   `json:"end,omitempty"`        // Node deletion/end timestamp (nil if still running)
 }
 
 // NodeVolumeUsage tracks storage usage for a disk volume attached to a node.
 // Used for cost allocation of cloud storage resources (e.g., AWS EBS volumes).
 type NodeVolumeUsage struct {
-	VolumeUID        string      `json:"volumeUid"`        // @bingen:field[version=1] - "root" for primary disk, or actual volume UID for additional volumes
-	CapacityBytes    Measurement `json:"capacityBytes"`    // @bingen:field[version=1] - Total capacity of the volume in bytes
-	UsageByteSeconds Measurement `json:"usageByteSeconds"` // @bingen:field[version=1] - Cumulative usage (KiB × seconds) over measurement window
-	VolumeType       string      `json:"volumeType"`       // @bingen:field[version=1] - "root" for primary disk, "persistent" for additional PVs
-	ProviderID       string      `json:"providerId"`       // @bingen:field[version=1] - Cloud provider volume ID (e.g., "vol-xxxxx" for AWS EBS)
-	DurationSeconds  Measurement `json:"durationSeconds"`  // @bingen:field[version=1] - Duration the volume was attached during measurement window in seconds
+	VolumeUID        string      `json:"volumeUid"`        // "root" for primary disk, or actual volume UID for additional volumes
+	CapacityBytes    Measurement `json:"capacityBytes"`    // Total capacity of the volume in bytes
+	UsageByteSeconds Measurement `json:"usageByteSeconds"` // Cumulative usage (KiB × seconds) over measurement window
+	VolumeType       string      `json:"volumeType"`       // "root" for primary disk, "persistent" for additional PVs
+	ProviderID       string      `json:"providerId"`       // Cloud provider volume ID (e.g., "vol-xxxxx" for AWS EBS)
+	DurationSeconds  Measurement `json:"durationSeconds"`  // Duration the volume was attached during measurement window in seconds
 }
 
 // CpuMillicoreUsageAverage calculates the average CPU usage in millicores over the uptime period.

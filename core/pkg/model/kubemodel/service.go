@@ -40,23 +40,23 @@ type ServicePort struct {
 // - Data transfer: $0.09/GB for internet egress
 // Total Service Cost = (LB hours × hourly rate) + (LCU hours × LCU rate) + (NetworkTransferBytes × transfer rate)
 type Service struct {
-	UID                  string            `json:"uid"`                   // @bingen:field[version=1]
-	ClusterUID           string            `json:"clusterUid"`            // @bingen:field[version=1]
-	NamespaceUID         string            `json:"namespaceUid"`          // @bingen:field[version=1]
-	Name                 string            `json:"name"`                  // @bingen:field[version=1]
-	Type                 ServiceType       `json:"type"`                  // @bingen:field[version=1]
-	Hostname             string            `json:"hostname,omitempty"`    // @bingen:field[version=1]
-	Labels               map[string]string `json:"labels,omitempty"`      // @bingen:field[version=1]
-	Annotations          map[string]string `json:"annotations,omitempty"` // @bingen:field[version=1]
-	Ports                []ServicePort     `json:"ports,omitempty"`       // @bingen:field[version=1]
-	Start                time.Time         `json:"start"`                 // @bingen:field[version=1]
-	End                  time.Time         `json:"end"`                   // @bingen:field[version=1]
-	NetworkTransferBytes Measurement       `json:"networkTransferBytes"`  // @bingen:field[version=1]
-	NetworkReceiveBytes  Measurement       `json:"networkReceiveBytes"`   // @bingen:field[version=1]
+	UID                  string            `json:"uid"`
+	ClusterUID           string            `json:"clusterUid"`
+	NamespaceUID         string            `json:"namespaceUid"`
+	Name                 string            `json:"name"`
+	Type                 ServiceType       `json:"type"`
+	Hostname             string            `json:"hostname,omitempty"`
+	Labels               map[string]string `json:"labels,omitempty"`
+	Annotations          map[string]string `json:"annotations,omitempty"`
+	Ports                []ServicePort     `json:"ports,omitempty"`
+	Start                time.Time         `json:"start"`
+	End                  time.Time         `json:"end"`
+	NetworkTransferBytes Measurement       `json:"networkTransferBytes"`
+	NetworkReceiveBytes  Measurement       `json:"networkReceiveBytes"`
 	// Label selector to identify pods/containers targeted by this service
 	// Maps label keys to values (e.g., {"app": "nginx", "tier": "frontend"})
 	// Pods with matching labels will receive traffic from this service
-	Selector map[string]string `json:"selector,omitempty"` // @bingen:field[version=1]
+	Selector map[string]string `json:"selector,omitempty"`
 	// Lifecycle tracking
-	DurationSeconds Measurement `json:"durationSeconds"` // @bingen:field[version=1] - Duration service existed within measurement window
+	DurationSeconds Measurement `json:"durationSeconds"` // Duration service existed within measurement window
 }

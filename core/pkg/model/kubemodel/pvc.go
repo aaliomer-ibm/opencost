@@ -5,23 +5,23 @@ import "time"
 // @bingen:generate:PersistentVolumeClaim
 type PersistentVolumeClaim struct {
 	// Version 1 fields
-	UID                string            `json:"uid"`                   // @bingen:field[version=1]
-	NamespaceUID       string            `json:"namespaceUid"`          // @bingen:field[version=1]
-	VolumeUID          *string           `json:"volumeUid,omitempty"`   // @bingen:field[version=1]
-	PodUID             *string           `json:"podUid,omitempty"`      // @bingen:field[version=1]
-	Name               string            `json:"name"`                  // @bingen:field[version=1]
-	Labels             map[string]string `json:"labels,omitempty"`      // @bingen:field[version=1]
-	Annotations        map[string]string `json:"annotations,omitempty"` // @bingen:field[version=1]
-	StorageClass       string            `json:"storageClass"`          // @bingen:field[version=1]
-	StorageByteSeconds Measurement       `json:"storageByteSeconds"`    // @bingen:field[version=1]
-	RequestedBytes     Measurement       `json:"requestedBytes"`        // @bingen:field[version=1]
-	Size               Measurement       `json:"size"`                  // @bingen:field[version=1] - Size in bytes
-	VolumeName         string            `json:"volumeName"`            // @bingen:field[version=1]
+	UID                string            `json:"uid"`
+	NamespaceUID       string            `json:"namespaceUid"`
+	VolumeUID          *string           `json:"volumeUid,omitempty"`
+	PodUID             *string           `json:"podUid,omitempty"`
+	Name               string            `json:"name"`
+	Labels             map[string]string `json:"labels,omitempty"`
+	Annotations        map[string]string `json:"annotations,omitempty"`
+	StorageClass       string            `json:"storageClass"`
+	StorageByteSeconds Measurement       `json:"storageByteSeconds"`
+	RequestedBytes     Measurement       `json:"requestedBytes"`
+	Size               Measurement       `json:"size"` // Size in bytes
+	VolumeName         string            `json:"volumeName"`
 	// ReadWriteOnce, ReadWriteMany, ReadOnlyMany
-	AccessModes           []string    `json:"accessModes,omitempty"`           // @bingen:field[version=1]
-	ActualUsedByteSeconds Measurement `json:"actualUsedByteSeconds,omitempty"` // @bingen:field[version=1]
-	Start                 time.Time   `json:"start"`                           // @bingen:field[version=1] - PVC creation timestamp
-	End                   time.Time   `json:"end,omitempty"`                   // @bingen:field[version=1] - PVC deletion timestamp (nil if still active)
-	BoundAt               time.Time   `json:"boundAt,omitempty"`               // @bingen:field[version=1]
-	DurationSeconds       Measurement `json:"durationSeconds,omitempty"`       // @bingen:field[version=1]
+	AccessModes           []string    `json:"accessModes,omitempty"`
+	ActualUsedByteSeconds Measurement `json:"actualUsedByteSeconds,omitempty"`
+	Start                 time.Time   `json:"start"`         // PVC creation timestamp
+	End                   time.Time   `json:"end,omitempty"` // PVC deletion timestamp (nil if still active)
+	BoundAt               time.Time   `json:"boundAt,omitempty"`
+	DurationSeconds       Measurement `json:"durationSeconds,omitempty"`
 }

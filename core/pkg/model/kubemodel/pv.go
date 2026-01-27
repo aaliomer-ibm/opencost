@@ -5,37 +5,37 @@ import "time"
 // @bingen:generate:PersistentVolume
 type PersistentVolume struct {
 	// Version 1 fields
-	UID          string            `json:"uid"`                   // @bingen:field[version=1]
-	ClusterUID   string            `json:"clusterUid"`            // @bingen:field[version=1]
-	Name         string            `json:"name"`                  // @bingen:field[version=1]
-	Namespace    string            `json:"namespace"`             // @bingen:field[version=1]
-	Labels       map[string]string `json:"labels,omitempty"`      // @bingen:field[version=1]
-	Annotations  map[string]string `json:"annotations,omitempty"` // @bingen:field[version=1]
-	StorageClass string            `json:"storageClass"`          // @bingen:field[version=1]
-	SizeBytes    Measurement       `json:"size"`                  // @bingen:field[version=1]
+	UID          string            `json:"uid"`
+	ClusterUID   string            `json:"clusterUid"`
+	Name         string            `json:"name"`
+	Namespace    string            `json:"namespace"`
+	Labels       map[string]string `json:"labels,omitempty"`
+	Annotations  map[string]string `json:"annotations,omitempty"`
+	StorageClass string            `json:"storageClass"`
+	SizeBytes    Measurement       `json:"size"`
 	// awsElasticBlockStore, azureDisk, gcePersistentDisk, csi, nfs, local, etc.
-	Type string `json:"type,omitempty"` // @bingen:field[version=1]
+	Type string `json:"type,omitempty"`
 	// ebs.csi.aws.com, disk.csi.azure.com, etc.
-	CSIDriver string `json:"csiDriver,omitempty"` // @bingen:field[version=1]
+	CSIDriver string `json:"csiDriver,omitempty"`
 	// Cloud provider's volume identifier
-	ProviderVolumeID string `json:"providerVolumeId,omitempty"` // @bingen:field[version=1]
+	ProviderVolumeID string `json:"providerVolumeId,omitempty"`
 	// ReadWriteOnce, ReadWriteMany, ReadOnlyMany
-	AccessModes []string `json:"accessModes,omitempty"` // @bingen:field[version=1]
+	AccessModes []string `json:"accessModes,omitempty"`
 	// Retain, Delete, Recycle
-	ReclaimPolicy string `json:"reclaimPolicy,omitempty"` // @bingen:field[version=1]
+	ReclaimPolicy string `json:"reclaimPolicy,omitempty"`
 	// Cloud region for cross-region cost tracking
-	Region string `json:"region,omitempty"` // @bingen:field[version=1]
+	Region string `json:"region,omitempty"`
 	// Availability zone for cross-AZ cost tracking
-	Zone string `json:"zone,omitempty"` // @bingen:field[version=1]
+	Zone string `json:"zone,omitempty"`
 	// Volume lifecycle timestamps
-	Start time.Time `json:"start"`         // @bingen:field[version=1] - Volume creation timestamp
-	End   time.Time `json:"end,omitempty"` // @bingen:field[version=1] - Volume deletion timestamp (nil if still active)
+	Start time.Time `json:"start"`         // Volume creation timestamp
+	End   time.Time `json:"end,omitempty"` // Volume deletion timestamp (nil if still active)
 	// Duration volume existed within measurement window
-	DurationSeconds Measurement `json:"durationSeconds"` // @bingen:field[version=1]
+	DurationSeconds Measurement `json:"durationSeconds"`
 	// JSON-encoded node affinity for local volumes
-	NodeAffinity string `json:"nodeAffinity,omitempty"` // @bingen:field[version=1]
+	NodeAffinity string `json:"nodeAffinity,omitempty"`
 	// Storage performance characteristics
-	ProvisionedIOPS       Measurement `json:"provisionedIops,omitempty"`       // @bingen:field[version=1] - Provisioned IOPS (AWS io1/io2, Azure Premium)
-	ProvisionedThroughput Measurement `json:"provisionedThroughput,omitempty"` // @bingen:field[version=1] - Provisioned throughput in MB/s
-	PerformanceMode       string      `json:"performanceMode,omitempty"`       // @bingen:field[version=1] - "generalPurpose", "maxIO", "provisioned"
+	ProvisionedIOPS       Measurement `json:"provisionedIops,omitempty"`       // Provisioned IOPS (AWS io1/io2, Azure Premium)
+	ProvisionedThroughput Measurement `json:"provisionedThroughput,omitempty"` // Provisioned throughput in MB/s
+	PerformanceMode       string      `json:"performanceMode,omitempty"`       // "generalPurpose", "maxIO", "provisioned"
 }

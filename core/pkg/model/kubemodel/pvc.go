@@ -1,6 +1,9 @@
 package kubemodel
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 // @bingen:generate:PersistentVolumeClaim
 type PersistentVolumeClaim struct {
@@ -24,4 +27,32 @@ type PersistentVolumeClaim struct {
 	End                   time.Time   `json:"end,omitempty"` // PVC deletion timestamp (nil if still active)
 	BoundAt               time.Time   `json:"boundAt,omitempty"`
 	DurationSeconds       Measurement `json:"durationSeconds,omitempty"`
+}
+
+func (kms *KubeModelSet) RegisterPVC(uid, name, namespace string) error {
+	if uid == "" {
+		err := fmt.Errorf("UID is nil for PVC '%s'", name)
+		kms.Error(err)
+		return err
+	}
+
+	if _, ok := kms.PersistentVolumeClaims[uid]; !ok {
+		namespaceUID := ""
+
+		if ns, ok := kms.idx.namespaceByName[namespace]; !ok {
+			kms.Warnf("RegisterPVC(%s, %s, %s): missing namespace '%s'", uid, name, namespace, namespace)
+		} else {
+			namespaceUID = ns.UID
+		}
+
+		kms.PersistentVolumeClaims[uid] = &PersistentVolumeClaim{
+			UID:          uid,
+			Name:         name,
+			NamespaceUID: namespaceUID,
+		}
+
+		kms.Metadata.ObjectCount++
+	}
+
+	return nil
 }

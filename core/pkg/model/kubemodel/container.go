@@ -1,6 +1,7 @@
 package kubemodel
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -88,4 +89,23 @@ func (c *Container) RAMByteLimitAverage() Measurement {
 		return 0
 	}
 	return KiBToBytes(c.RAMKiBLimitSeconds / c.DurationSeconds)
+}
+
+func (kms *KubeModelSet) RegisterContainer(uid, name, podUID string) error {
+	if uid == "" {
+		err := fmt.Errorf("UID is nil for Container '%s'", name)
+		kms.Error(err)
+		return err
+	}
+
+	if _, ok := kms.Containers[uid]; !ok {
+		kms.Containers[uid] = &Container{
+			PodUID: podUID,
+			Name:   name,
+		}
+
+		kms.Metadata.ObjectCount++
+	}
+
+	return nil
 }

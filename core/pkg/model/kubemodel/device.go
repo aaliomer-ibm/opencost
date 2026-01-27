@@ -71,3 +71,22 @@ func (d *Device) Clone() *Device {
 
 	return cloned
 }
+
+func (kms *KubeModelSet) RegisterDevice(uid, nodeUID string) error {
+	if uid == "" {
+		err := fmt.Errorf("UID is nil for Device")
+		kms.Error(err)
+		return err
+	}
+
+	if _, ok := kms.Devices[uid]; !ok {
+		kms.Devices[uid] = &Device{
+			UID:     uid,
+			NodeUID: nodeUID,
+		}
+
+		kms.Metadata.ObjectCount++
+	}
+
+	return nil
+}

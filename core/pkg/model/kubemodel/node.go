@@ -1,6 +1,9 @@
 package kubemodel
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 // @bingen:generate:Node
 // Node represents a Kubernetes node with capacity-based resource tracking.
@@ -77,4 +80,28 @@ func (n *Node) GetVolumeUsageAverage(volumeUID string) Measurement {
 		return 0
 	}
 	return KiBToBytes(volume.UsageByteSeconds) / n.DurationSeconds
+}
+
+func (kms *KubeModelSet) RegisterNode(uid, name string) error {
+	if uid == "" {
+		err := fmt.Errorf("UID is nil for Node '%s'", name)
+		kms.Error(err)
+		return err
+	}
+
+	if _, ok := kms.Nodes[uid]; !ok {
+		if kms.Cluster == nil {
+			kms.Warnf("RegisterNode(%s, %s): Cluster is nil", uid, name)
+		}
+
+		kms.Nodes[uid] = &Node{
+			UID:             uid,
+			Name:            name,
+			AttachedVolumes: make(map[string]*NodeVolumeUsage),
+		}
+
+		kms.Metadata.ObjectCount++
+	}
+
+	return nil
 }

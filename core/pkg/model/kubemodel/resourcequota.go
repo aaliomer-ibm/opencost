@@ -1,6 +1,9 @@
 package kubemodel
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 // @bingen:generate:ResourceQuota
 type ResourceQuota struct {
@@ -65,4 +68,34 @@ func (stat *ResourceQuotaStatusUsed) SetLimit(resource Resource, unit Unit, stat
 	}
 
 	stat.Limits.Set(resource, unit, statType, value)
+}
+
+func (kms *KubeModelSet) RegisterResourceQuota(uid, name, namespace string) error {
+	if uid == "" {
+		err := fmt.Errorf("UID is nil for ResourceQuota '%s'", name)
+		kms.Error(err)
+		return err
+	}
+
+	if _, ok := kms.ResourceQuotas[uid]; !ok {
+		namespaceUID := ""
+
+		if _, ok := kms.idx.namespaceByName[namespace]; !ok {
+			kms.Warnf("RegisterResourceQuota(%s, %s, %s): missing namespace", uid, name, namespace)
+		} else {
+			namespaceUID = kms.idx.namespaceByName[namespace].UID
+		}
+
+		kms.ResourceQuotas[uid] = &ResourceQuota{
+			UID:          uid,
+			Name:         name,
+			NamespaceUID: namespaceUID,
+			Spec:         &ResourceQuotaSpec{Hard: &ResourceQuotaSpecHard{}},
+			Status:       &ResourceQuotaStatus{Used: &ResourceQuotaStatusUsed{}},
+		}
+
+		kms.Metadata.ObjectCount++
+	}
+
+	return nil
 }

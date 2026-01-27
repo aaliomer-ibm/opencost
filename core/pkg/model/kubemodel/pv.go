@@ -1,6 +1,9 @@
 package kubemodel
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 // @bingen:generate:PersistentVolume
 type PersistentVolume struct {
@@ -38,4 +41,32 @@ type PersistentVolume struct {
 	ProvisionedIOPS       Measurement `json:"provisionedIops,omitempty"`       // Provisioned IOPS (AWS io1/io2, Azure Premium)
 	ProvisionedThroughput Measurement `json:"provisionedThroughput,omitempty"` // Provisioned throughput in MB/s
 	PerformanceMode       string      `json:"performanceMode,omitempty"`       // "generalPurpose", "maxIO", "provisioned"
+}
+
+func (kms *KubeModelSet) RegisterVolume(uid, name string) error {
+	if uid == "" {
+		err := fmt.Errorf("UID is nil for PersistentVolume '%s'", name)
+		kms.Error(err)
+		return err
+	}
+
+	if _, ok := kms.Volumes[uid]; !ok {
+		clusterUID := ""
+
+		if kms.Cluster == nil {
+			kms.Warnf("RegisterVolume(%s, %s): Cluster is nil", uid, name)
+		} else {
+			clusterUID = kms.Cluster.UID
+		}
+
+		kms.Volumes[uid] = &PersistentVolume{
+			UID:        uid,
+			ClusterUID: clusterUID,
+			Name:       name,
+		}
+
+		kms.Metadata.ObjectCount++
+	}
+
+	return nil
 }

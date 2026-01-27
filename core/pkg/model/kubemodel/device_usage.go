@@ -65,3 +65,22 @@ func (u *DeviceUsage) MemoryByteUsageAverage() Measurement {
 	}
 	return KiBToBytes(u.MemoryByteSecondsUsed) / u.DurationSeconds
 }
+
+func (kms *KubeModelSet) RegisterUsage(id, containerID, deviceId string) error {
+	if id == "" {
+		err := fmt.Errorf("UID is nil for DeviceUsage")
+		kms.Error(err)
+		return err
+	}
+
+	if _, ok := kms.DeviceUsages[id]; !ok {
+		kms.DeviceUsages[id] = &DeviceUsage{
+			ContainerUID: containerID,
+			DeviceUID:    deviceId,
+		}
+
+		kms.Metadata.ObjectCount++
+	}
+
+	return nil
+}

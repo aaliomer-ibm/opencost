@@ -15,11 +15,13 @@ import (
 	coreenv "github.com/opencost/opencost/core/pkg/env"
 	"github.com/opencost/opencost/core/pkg/filter/allocation"
 	"github.com/opencost/opencost/core/pkg/log"
+	"github.com/opencost/opencost/core/pkg/model/kubemodel"
 	"github.com/opencost/opencost/core/pkg/opencost"
 	"github.com/opencost/opencost/core/pkg/source"
 	"github.com/opencost/opencost/core/pkg/util"
 	"github.com/opencost/opencost/core/pkg/util/promutil"
 	costAnalyzerCloud "github.com/opencost/opencost/pkg/cloud/models"
+	km "github.com/opencost/opencost/pkg/kubemodel"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -47,10 +49,12 @@ type CostModel struct {
 	RequestGroup    *singleflight.Group
 	DataSource      source.OpenCostDataSource
 	Provider        costAnalyzerCloud.Provider
+	KubeModel       *km.KubeModel
 	pricingMetadata *costAnalyzerCloud.PricingMatchMetadata
 }
 
 func NewCostModel(
+	clusterUID string,
 	dataSource source.OpenCostDataSource,
 	provider costAnalyzerCloud.Provider,
 	cache clustercache.ClusterCache,
@@ -60,6 +64,16 @@ func NewCostModel(
 	// request grouping to prevent over-requesting the same data prior to caching
 	requestGroup := new(singleflight.Group)
 
+	var kubeModel *km.KubeModel
+	var err error
+	if dataSource != nil {
+		kubeModel, err = km.NewKubeModel(clusterUID, dataSource)
+		if err != nil {
+			// KubeModel is required. Log a fatal error if we fail to init.
+			log.Fatalf("error initializing KubeModel: %s", err)
+		}
+	}
+
 	return &CostModel{
 		Cache:         cache,
 		ClusterMap:    clusterMap,
@@ -67,7 +81,16 @@ func NewCostModel(
 		DataSource:    dataSource,
 		Provider:      provider,
 		RequestGroup:  requestGroup,
+		KubeModel:     kubeModel,
 	}
+}
+
+func (cm *CostModel) ComputeKubeModelSet(start, end time.Time) (*kubemodel.KubeModelSet, error) {
+	if cm.KubeModel == nil {
+		return nil, fmt.Errorf("KubeModel not initialized")
+	}
+
+	return cm.KubeModel.ComputeKubeModelSet(start, end)
 }
 
 type CostData struct {
@@ -881,14 +904,18 @@ func (cm *CostModel) GetNodeCost() (map[string]*costAnalyzerCloud.Node, error) {
 	for _, n := range nodeList {
 		name := n.Name
 		nodeLabels := n.Labels
+		if nodeLabels == nil {
+			log.Warnf("GetNodeCost: Found node '%s' with no labels", name)
+			nodeLabels = make(map[string]string)
+		}
+
 		nodeLabels["providerID"] = n.SpecProviderID
 
 		pmd.TotalNodes++
 
 		cnode, _, err := cp.NodePricing(cp.GetKey(nodeLabels, n))
 		if err != nil {
-			log.Infof("Could not get node pricing for node %s. Falling back to default pricing", name)
-			log.Debugf("Error getting node pricing: %s", err.Error())
+			log.DedupedInfof(10, "Could not get node pricing for node %s: %s. Falling back to default pricing.", name, err.Error())
 			if cnode != nil {
 				nodes[name] = cnode
 				continue
@@ -934,17 +961,17 @@ func (cm *CostModel) GetNodeCost() (map[string]*costAnalyzerCloud.Node, error) {
 			cpu = 0
 		}
 
-		var ram float64
 		if newCnode.RAM == "" {
 			newCnode.RAM = n.Status.Capacity.Memory().String()
 		}
-		ram = float64(n.Status.Capacity.Memory().Value())
+		if newCnode.RAMBytes == "" {
+			newCnode.RAMBytes = fmt.Sprintf("%v", n.Status.Capacity.Memory().Value())
+		}
+		ram, _ := strconv.ParseFloat(newCnode.RAMBytes, 64)
 		if math.IsNaN(ram) {
 			log.Warnf("ram parsed as NaN. Setting to 0.")
 			ram = 0
 		}
-
-		newCnode.RAMBytes = fmt.Sprintf("%f", ram)
 
 		gpuc, err := strconv.ParseFloat(newCnode.GPU, 64)
 		if err != nil {

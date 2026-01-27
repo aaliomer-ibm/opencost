@@ -2,27 +2,24 @@ package kubemodel
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
-// @bingen:generate:Container
 type Container struct {
-	PodUID                     uuid.UUID                 `json:"podUid"`                              // @bingen:field[version=1]
-	Name                       string                    `json:"name"`                                // @bingen:field[version=1]
-	DurationSeconds            Measurement               `json:"durationSeconds"`                     // @bingen:field[version=1]
-	CpuMillicoreSeconds        Measurement               `json:"cpuMillicoreSeconds"`                 // @bingen:field[version=1]
-	CpuMillicoreUsageMax       Measurement               `json:"cpuMillicoreUsageMax"`                // @bingen:field[version=1]
-	CpuMillicoreRequestSeconds Measurement               `json:"cpuMillicoreRequestSeconds"`          // @bingen:field[version=1]
-	RAMByteSeconds             Measurement               `json:"ramByteSeconds"`                      // @bingen:field[version=1]
-	RAMByteUsageMax            Measurement               `json:"ramByteUsageMax"`                     // @bingen:field[version=1]
-	RAMKiBRequestSeconds       Measurement               `json:"ramKiBRequestSeconds"`                // @bingen:field[version=1]
-	VolumeStorageByteSeconds   map[uuid.UUID]Measurement `json:"volumeStorageByteSeconds,omitempty"`  // @bingen:field[version=1]
-	VolumeStorageByteUsageMax  map[uuid.UUID]Measurement `json:"volumeStorageByteUsageMax,omitempty"` // @bingen:field[version=1]
-	CpuMillicoreLimitSeconds   Measurement               `json:"cpuMillicoreLimitSeconds,omitempty"`  // @bingen:field[version=1]
-	RAMKiBLimitSeconds         Measurement               `json:"ramKiBLimitSeconds,omitempty"`        // @bingen:field[version=1]
-	Start                      time.Time                 `json:"start"`                               // @bingen:field[version=1]
-	End                        time.Time                 `json:"end"`                                 // @bingen:field[version=1]
+	PodUID                     string                 `json:"podUid"`                              // @bingen:field[version=1]
+	Name                       string                 `json:"name"`                                // @bingen:field[version=1]
+	DurationSeconds            Measurement            `json:"durationSeconds"`                     // @bingen:field[version=1]
+	CpuMillicoreSeconds        Measurement            `json:"cpuMillicoreSeconds"`                 // @bingen:field[version=1]
+	CpuMillicoreUsageMax       Measurement            `json:"cpuMillicoreUsageMax"`                // @bingen:field[version=1]
+	CpuMillicoreRequestSeconds Measurement            `json:"cpuMillicoreRequestSeconds"`          // @bingen:field[version=1]
+	RAMByteSeconds             Measurement            `json:"ramByteSeconds"`                      // @bingen:field[version=1]
+	RAMByteUsageMax            Measurement            `json:"ramByteUsageMax"`                     // @bingen:field[version=1]
+	RAMKiBRequestSeconds       Measurement            `json:"ramKiBRequestSeconds"`                // @bingen:field[version=1]
+	VolumeStorageByteSeconds   map[string]Measurement `json:"volumeStorageByteSeconds,omitempty"`  // @bingen:field[version=1]
+	VolumeStorageByteUsageMax  map[string]Measurement `json:"volumeStorageByteUsageMax,omitempty"` // @bingen:field[version=1]
+	CpuMillicoreLimitSeconds   Measurement            `json:"cpuMillicoreLimitSeconds,omitempty"`  // @bingen:field[version=1]
+	RAMKiBLimitSeconds         Measurement            `json:"ramKiBLimitSeconds,omitempty"`        // @bingen:field[version=1]
+	Start                      time.Time              `json:"start"`                               // @bingen:field[version=1]
+	End                        time.Time              `json:"end"`                                 // @bingen:field[version=1]
 }
 
 func (c *Container) CpuMillicoreUsageAverage() Measurement {

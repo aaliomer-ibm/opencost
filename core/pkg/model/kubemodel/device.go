@@ -4,15 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // @bingen:generate:Device
 type Device struct {
-	UID               uuid.UUID   `json:"uid"`               // @bingen:field[version=1] Device UUID (hardware identifier)
+	UID               string      `json:"uid"`               // @bingen:field[version=1] Device UUID (hardware identifier)
 	Type              string      `json:"type,omitempty"`    // @bingen:field[version=1] Device type (e.g., "device", "tpu")
-	NodeUID           uuid.UUID   `json:"nodeUid"`           // @bingen:field[version=1] Node hosting this device
+	NodeUID           string      `json:"nodeUid"`           // @bingen:field[version=1] Node hosting this device
 	DeviceNumber      int32       `json:"deviceNumber"`      // @bingen:field[version=1]
 	ModelName         string      `json:"modelName"`         // @bingen:field[version=1]
 	IsShared          bool        `json:"isShared"`          // @bingen:field[version=1] Device sharing information
@@ -29,10 +27,10 @@ type Device struct {
 
 // Validate validates the Device fields
 func (d *Device) Validate() error {
-	if d.UID == uuid.Nil {
+	if d.UID == "" {
 		return errors.New("UID is required")
 	}
-	if d.NodeUID == uuid.Nil {
+	if d.NodeUID == "" {
 		return errors.New("NodeUID is required")
 	}
 	if d.SharePercentage < 0 || d.SharePercentage > 100 {

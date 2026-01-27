@@ -1,16 +1,12 @@
 package kubemodel
 
-import (
-	"time"
-
-	"github.com/google/uuid"
-)
+import "time"
 
 // @bingen:generate:PersistentVolume
 type PersistentVolume struct {
 	// Version 1 fields
-	UID          uuid.UUID         `json:"uid"`                   // @bingen:field[version=1]
-	ClusterUID   uuid.UUID         `json:"clusterUid"`            // @bingen:field[version=1]
+	UID          string            `json:"uid"`                   // @bingen:field[version=1]
+	ClusterUID   string            `json:"clusterUid"`            // @bingen:field[version=1]
 	Name         string            `json:"name"`                  // @bingen:field[version=1]
 	Namespace    string            `json:"namespace"`             // @bingen:field[version=1]
 	Labels       map[string]string `json:"labels,omitempty"`      // @bingen:field[version=1]

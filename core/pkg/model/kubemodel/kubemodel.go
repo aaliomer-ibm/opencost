@@ -1,120 +1,55 @@
 package kubemodel
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
-
-	"github.com/google/uuid"
 )
+
+// TODO: should we add a lock so that we can safely modify KubeModelSet in parallel?
 
 // @bingen:generate[stringtable]:KubeModelSet
 type KubeModelSet struct {
-	Metadata               *Metadata                            `json:"meta"`                   // @bingen:field[version=1]
-	Window                 Window                               `json:"window"`                 // @bingen:field[version=1]
-	Cluster                *Cluster                             `json:"cluster"`                // @bingen:field[version=1]
-	Namespaces             map[uuid.UUID]*Namespace             `json:"namespaces"`             // @bingen:field[version=1]
-	ResourceQuotas         map[uuid.UUID]*ResourceQuota         `json:"resourceQuotas"`         // @bingen:field[version=1]
-	Containers             map[uuid.UUID]*Container             `json:"containers,omitempty"`   // @bingen:field[version=1]
-	Owners                 map[uuid.UUID]*Owner                 `json:"owners,omitempty"`       // @bingen:field[version=1]
-	Devices                map[uuid.UUID]*Device                `json:"devices,omitempty"`      // @bingen:field[version=1]
-	DeviceUsages           map[uuid.UUID]*DeviceUsage           `json:"deviceUsages,omitempty"` // @bingen:field[version=1]
-	Nodes                  map[uuid.UUID]*Node                  `json:"nodes,omitempty"`        // @bingen:field[version=1]
-	Pods                   map[uuid.UUID]*Pod                   `json:"pods,omitempty"`         // @bingen:field[version=1]
-	PersistentVolumeClaims map[uuid.UUID]*PersistentVolumeClaim `json:"pvcs,omitempty"`         // @bingen:field[version=1]
-	Services               map[uuid.UUID]*Service               `json:"services,omitempty"`     // @bingen:field[version=1]
-	Volumes                map[uuid.UUID]*PersistentVolume      `json:"volumes,omitempty"`      // @bingen:field[version=1]
-	idx                    *kubeModelSetIndexes                 // @bingen:field[ignore]
-}
-
-func (kms *KubeModelSet) MarshalBinary() (data []byte, err error) {
-	// TODO implement me
-	panic("implement me")
-}
-
-// UnmarshalJSON implements custom JSON unmarshaling to ensure maps are initialized
-func (kms *KubeModelSet) UnmarshalJSON(data []byte) error {
-	// Define a type alias to avoid recursion
-	type Alias KubeModelSet
-	aux := &struct {
-		*Alias
-	}{
-		Alias: (*Alias)(kms),
-	}
-
-	if err := json.Unmarshal(data, &aux); err != nil {
-		return err
-	}
-
-	// Initialize nil maps to empty maps
-	if kms.Containers == nil {
-		kms.Containers = make(map[uuid.UUID]*Container)
-	}
-	if kms.Owners == nil {
-		kms.Owners = make(map[uuid.UUID]*Owner)
-	}
-	if kms.Devices == nil {
-		kms.Devices = make(map[uuid.UUID]*Device)
-	}
-	if kms.DeviceUsages == nil {
-		kms.DeviceUsages = make(map[uuid.UUID]*DeviceUsage)
-	}
-	if kms.Namespaces == nil {
-		kms.Namespaces = make(map[uuid.UUID]*Namespace)
-	}
-	if kms.Nodes == nil {
-		kms.Nodes = make(map[uuid.UUID]*Node)
-	}
-	if kms.Pods == nil {
-		kms.Pods = make(map[uuid.UUID]*Pod)
-	}
-	if kms.PersistentVolumeClaims == nil {
-		kms.PersistentVolumeClaims = make(map[uuid.UUID]*PersistentVolumeClaim)
-	}
-	if kms.ResourceQuotas == nil {
-		kms.ResourceQuotas = make(map[uuid.UUID]*ResourceQuota)
-	}
-	if kms.Services == nil {
-		kms.Services = make(map[uuid.UUID]*Service)
-	}
-	if kms.Volumes == nil {
-		kms.Volumes = make(map[uuid.UUID]*PersistentVolume)
-	}
-	if kms.idx == nil {
-		kms.idx = &kubeModelSetIndexes{
-			namespaceNameToID: make(map[string]uuid.UUID),
-		}
-	}
-
-	return nil
+	Metadata               *Metadata                         `json:"meta"`                   // @bingen:field[version=1]
+	Window                 Window                            `json:"window"`                 // @bingen:field[version=1]
+	Cluster                *Cluster                          `json:"cluster"`                // @bingen:field[version=1]
+	Namespaces             map[string]*Namespace             `json:"namespaces"`             // @bingen:field[version=1]
+	ResourceQuotas         map[string]*ResourceQuota         `json:"resourceQuotas"`         // @bingen:field[version=1]
+	Containers             map[string]*Container             `json:"containers,omitempty"`   // @bingen:field[ignore]
+	Owners                 map[string]*Owner                 `json:"owners,omitempty"`       // @bingen:field[ignore]
+	Devices                map[string]*Device                `json:"devices,omitempty"`      // @bingen:field[ignore]
+	DeviceUsages           map[string]*DeviceUsage           `json:"deviceUsages,omitempty"` // @bingen:field[ignore]
+	Nodes                  map[string]*Node                  `json:"nodes,omitempty"`        // @bingen:field[ignore]
+	Pods                   map[string]*Pod                   `json:"pods,omitempty"`         // @bingen:field[ignore]
+	PersistentVolumeClaims map[string]*PersistentVolumeClaim `json:"pvcs,omitempty"`         // @bingen:field[ignore]
+	Services               map[string]*Service               `json:"services,omitempty"`     // @bingen:field[ignore]
+	Volumes                map[string]*PersistentVolume      `json:"volumes,omitempty"`      // @bingen:field[ignore]
+	idx                    *kubeModelSetIndexes              // @bingen:field[ignore]
 }
 
 func NewKubeModelSet(start time.Time, end time.Time) *KubeModelSet {
 	now := time.Now().UTC()
 	kms := &KubeModelSet{
 		Metadata: &Metadata{
-			Start: now,
-			End:   now, // Will be updated when processing completes
+			CreatedAt:   now,
+			CompletedAt: now, // Will be updated when processing completes
 		},
 		Window: Window{
 			Start: start,
 			End:   end,
 		},
-		Containers:             map[uuid.UUID]*Container{},
-		Owners:                 map[uuid.UUID]*Owner{},
-		Devices:                map[uuid.UUID]*Device{},
-		DeviceUsages:           map[uuid.UUID]*DeviceUsage{},
-		Namespaces:             map[uuid.UUID]*Namespace{},
-		Nodes:                  map[uuid.UUID]*Node{},
-		Pods:                   map[uuid.UUID]*Pod{},
-		PersistentVolumeClaims: map[uuid.UUID]*PersistentVolumeClaim{},
-		ResourceQuotas:         map[uuid.UUID]*ResourceQuota{},
-		Services:               map[uuid.UUID]*Service{},
-		Volumes:                map[uuid.UUID]*PersistentVolume{},
-		idx: &kubeModelSetIndexes{
-			namespaceNameToID: map[string]uuid.UUID{},
-		},
+		Containers:             map[string]*Container{},
+		Owners:                 map[string]*Owner{},
+		Devices:                map[string]*Device{},
+		DeviceUsages:           map[string]*DeviceUsage{},
+		Namespaces:             map[string]*Namespace{},
+		Nodes:                  map[string]*Node{},
+		Pods:                   map[string]*Pod{},
+		PersistentVolumeClaims: map[string]*PersistentVolumeClaim{},
+		ResourceQuotas:         map[string]*ResourceQuota{},
+		Services:               map[string]*Service{},
+		Volumes:                map[string]*PersistentVolume{},
+		idx:                    newKubeModelSetIndexes(),
 	}
 	// Set the window duration
 	if end.After(start) {
@@ -123,7 +58,7 @@ func NewKubeModelSet(start time.Time, end time.Time) *KubeModelSet {
 	return kms
 }
 
-func (kms *KubeModelSet) RegisterNamespace(uid uuid.UUID, name string) error {
+func (kms *KubeModelSet) RegisterNamespace(uid string, name string) error {
 	if _, ok := kms.Namespaces[uid]; !ok {
 		if kms.Cluster == nil {
 			return errors.New("KubeModelSet missing Cluster")
@@ -139,7 +74,6 @@ func (kms *KubeModelSet) RegisterNamespace(uid uuid.UUID, name string) error {
 			kms.idx.namespaceNameToID[name] = uid
 		}
 
-		kms.Metadata.ObjectCount++
 	}
 
 	return nil
@@ -180,7 +114,7 @@ func (kms *KubeModelSet) IsEmpty() bool {
 		len(kms.Volumes) == 0
 }
 
-func (kms *KubeModelSet) RegisterResourceQuota(uid uuid.UUID, name, namespace string) error {
+func (kms *KubeModelSet) RegisterResourceQuota(uid string, name, namespace string) error {
 	if _, ok := kms.ResourceQuotas[uid]; !ok {
 		nsUID, ok := kms.idx.namespaceNameToID[namespace]
 		if !ok {
@@ -195,13 +129,12 @@ func (kms *KubeModelSet) RegisterResourceQuota(uid uuid.UUID, name, namespace st
 			Status:       &ResourceQuotaStatus{Used: &ResourceQuotaStatusUsed{}},
 		}
 
-		kms.Metadata.ObjectCount++
 	}
 
 	return nil
 }
 
-func (kms *KubeModelSet) RegisterPod(uid uuid.UUID, name, namespace string) error {
+func (kms *KubeModelSet) RegisterPod(uid string, name, namespace string) error {
 	if _, ok := kms.Pods[uid]; !ok {
 		nsUID, ok := kms.idx.namespaceNameToID[namespace]
 		if !ok {
@@ -220,7 +153,7 @@ func (kms *KubeModelSet) RegisterPod(uid uuid.UUID, name, namespace string) erro
 	return nil
 }
 
-func (kms *KubeModelSet) RegisterNode(uid uuid.UUID, name string) error {
+func (kms *KubeModelSet) RegisterNode(uid string, name string) error {
 	if _, ok := kms.Nodes[uid]; !ok {
 		if kms.Cluster == nil {
 			return errors.New("KubeModelSet missing Cluster")
@@ -229,7 +162,7 @@ func (kms *KubeModelSet) RegisterNode(uid uuid.UUID, name string) error {
 		kms.Nodes[uid] = &Node{
 			UID:             uid,
 			Name:            name,
-			AttachedVolumes: make(map[uuid.UUID]*NodeVolumeUsage),
+			AttachedVolumes: make(map[string]*NodeVolumeUsage),
 		}
 
 		kms.Metadata.ObjectCount++
@@ -238,7 +171,7 @@ func (kms *KubeModelSet) RegisterNode(uid uuid.UUID, name string) error {
 	return nil
 }
 
-func (kms *KubeModelSet) RegisterOwner(uid uuid.UUID, name, namespace, kind string) error {
+func (kms *KubeModelSet) RegisterOwner(uid string, name, namespace, kind string) error {
 	if _, ok := kms.Owners[uid]; !ok {
 		nsUID, ok := kms.idx.namespaceNameToID[namespace]
 		if !ok {
@@ -258,7 +191,7 @@ func (kms *KubeModelSet) RegisterOwner(uid uuid.UUID, name, namespace, kind stri
 	return nil
 }
 
-func (kms *KubeModelSet) RegisterService(uid uuid.UUID, name, namespace string) error {
+func (kms *KubeModelSet) RegisterService(uid string, name, namespace string) error {
 	if _, ok := kms.Services[uid]; !ok {
 		if kms.Cluster == nil {
 			return errors.New("KubeModelSet missing Cluster")
@@ -282,7 +215,7 @@ func (kms *KubeModelSet) RegisterService(uid uuid.UUID, name, namespace string) 
 	return nil
 }
 
-func (kms *KubeModelSet) RegisterPVC(uid uuid.UUID, name, namespace string) error {
+func (kms *KubeModelSet) RegisterPVC(uid string, name, namespace string) error {
 	if _, ok := kms.PersistentVolumeClaims[uid]; !ok {
 		nsUID, ok := kms.idx.namespaceNameToID[namespace]
 		if !ok {
@@ -301,7 +234,7 @@ func (kms *KubeModelSet) RegisterPVC(uid uuid.UUID, name, namespace string) erro
 	return nil
 }
 
-func (kms *KubeModelSet) RegisterVolume(uid uuid.UUID, name string) error {
+func (kms *KubeModelSet) RegisterVolume(uid string, name string) error {
 	if _, ok := kms.Volumes[uid]; !ok {
 		if kms.Cluster == nil {
 			return errors.New("KubeModelSet missing Cluster")
@@ -319,13 +252,13 @@ func (kms *KubeModelSet) RegisterVolume(uid uuid.UUID, name string) error {
 	return nil
 }
 
-func (kms *KubeModelSet) RegisterContainer(uid uuid.UUID, name string, podUID uuid.UUID) error {
+func (kms *KubeModelSet) RegisterContainer(uid string, name string, podUID string) error {
 	if _, ok := kms.Containers[uid]; !ok {
 		kms.Containers[uid] = &Container{
 			PodUID:                    podUID,
 			Name:                      name,
-			VolumeStorageByteSeconds:  make(map[uuid.UUID]Measurement),
-			VolumeStorageByteUsageMax: make(map[uuid.UUID]Measurement),
+			VolumeStorageByteSeconds:  make(map[string]Measurement),
+			VolumeStorageByteUsageMax: make(map[string]Measurement),
 		}
 
 		kms.Metadata.ObjectCount++
@@ -334,7 +267,7 @@ func (kms *KubeModelSet) RegisterContainer(uid uuid.UUID, name string, podUID uu
 	return nil
 }
 
-func (kms *KubeModelSet) RegisterDevice(uid uuid.UUID, nodeUID uuid.UUID) error {
+func (kms *KubeModelSet) RegisterDevice(uid string, nodeUID string) error {
 	if _, ok := kms.Devices[uid]; !ok {
 		kms.Devices[uid] = &Device{
 			UID:     uid,
@@ -347,7 +280,7 @@ func (kms *KubeModelSet) RegisterDevice(uid uuid.UUID, nodeUID uuid.UUID) error 
 	return nil
 }
 
-func (kms *KubeModelSet) RegisterUsage(id, containerID, deviceId uuid.UUID) error {
+func (kms *KubeModelSet) RegisterUsage(id, containerID, deviceId string) error {
 
 	if _, ok := kms.DeviceUsages[deviceId]; !ok {
 
@@ -363,5 +296,13 @@ func (kms *KubeModelSet) RegisterUsage(id, containerID, deviceId uuid.UUID) erro
 }
 
 type kubeModelSetIndexes struct {
-	namespaceNameToID map[string]uuid.UUID
+	namespaceNameToID map[string]string
+	namespaceByName   map[string]*Namespace
+}
+
+func newKubeModelSetIndexes() *kubeModelSetIndexes {
+	return &kubeModelSetIndexes{
+		namespaceNameToID: make(map[string]string),
+		namespaceByName:   make(map[string]*Namespace),
+	}
 }

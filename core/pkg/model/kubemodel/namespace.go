@@ -1,14 +1,11 @@
 package kubemodel
 
-import (
-	"time"
-
-	"github.com/google/uuid"
-)
+import "time"
 
 // @bingen:generate:Namespace
 type Namespace struct {
-	UID         uuid.UUID         `json:"uid"`             // @bingen:field[version=1]
+	ClusterUID  string            `json:"clusterUID"`      // @bingen:field[version=1]
+	UID         string            `json:"uid"`             // @bingen:field[version=1]
 	Name        string            `json:"name"`            // @bingen:field[version=1]
 	Labels      map[string]string `json:"labels"`          // @bingen:field[version=1]
 	Annotations map[string]string `json:"annotations"`     // @bingen:field[version=1]

@@ -17,3 +17,11 @@ func BytesToKiB(bytes Measurement) Measurement {
 func KiBToBytes(kib Measurement) Measurement {
 	return kib * bytesToKiBFactor
 }
+
+const (
+	UnitMillicore       = "m"
+	UnitByte            = "B"
+	UnitSecond          = "s"
+	UnitMillicoreSecond = "m-s"
+	UnitByteSecond      = "B-s"
+)

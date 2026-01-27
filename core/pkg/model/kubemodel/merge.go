@@ -5,8 +5,6 @@ import (
 	"maps"
 	"math"
 	"slices"
-
-	"github.com/google/uuid"
 )
 
 func Merge(kms1, kms2 *KubeModelSet) (*KubeModelSet, error) {
@@ -41,31 +39,31 @@ func Merge(kms1, kms2 *KubeModelSet) (*KubeModelSet, error) {
 	}
 
 	if kms1.Metadata != nil && kms2.Metadata != nil {
-		if kms2.Metadata.Start.Before(kms1.Metadata.Start) {
-			merged.Metadata.Start = kms2.Metadata.Start
+		if kms2.Metadata.CreatedAt.Before(kms1.Metadata.CreatedAt) {
+			merged.Metadata.CreatedAt = kms2.Metadata.CreatedAt
 		} else {
-			merged.Metadata.Start = kms1.Metadata.Start
+			merged.Metadata.CreatedAt = kms1.Metadata.CreatedAt
 		}
-		if kms2.Metadata.End.After(kms1.Metadata.End) {
-			merged.Metadata.End = kms2.Metadata.End
+		if kms2.Metadata.CompletedAt.After(kms1.Metadata.CompletedAt) {
+			merged.Metadata.CompletedAt = kms2.Metadata.CompletedAt
 		} else {
-			merged.Metadata.End = kms1.Metadata.End
+			merged.Metadata.CompletedAt = kms1.Metadata.CompletedAt
 		}
 		merged.Metadata.ObjectCount = kms1.Metadata.ObjectCount + kms2.Metadata.ObjectCount
 		merged.Metadata.Diagnostics = append(
-			append([]*DiagnosticResult{}, kms1.Metadata.Diagnostics...),
+			append([]Diagnostic{}, kms1.Metadata.Diagnostics...),
 			kms2.Metadata.Diagnostics...,
 		)
 	} else if kms1.Metadata != nil {
-		merged.Metadata.Start = kms1.Metadata.Start
-		merged.Metadata.End = kms1.Metadata.End
+		merged.Metadata.CreatedAt = kms1.Metadata.CreatedAt
+		merged.Metadata.CompletedAt = kms1.Metadata.CompletedAt
 		merged.Metadata.ObjectCount = kms1.Metadata.ObjectCount
-		merged.Metadata.Diagnostics = append([]*DiagnosticResult{}, kms1.Metadata.Diagnostics...)
+		merged.Metadata.Diagnostics = append([]Diagnostic{}, kms1.Metadata.Diagnostics...)
 	} else if kms2.Metadata != nil {
-		merged.Metadata.Start = kms2.Metadata.Start
-		merged.Metadata.End = kms2.Metadata.End
+		merged.Metadata.CreatedAt = kms2.Metadata.CreatedAt
+		merged.Metadata.CompletedAt = kms2.Metadata.CompletedAt
 		merged.Metadata.ObjectCount = kms2.Metadata.ObjectCount
-		merged.Metadata.Diagnostics = append([]*DiagnosticResult{}, kms2.Metadata.Diagnostics...)
+		merged.Metadata.Diagnostics = append([]Diagnostic{}, kms2.Metadata.Diagnostics...)
 	}
 
 	merged.Cluster = kms1.Cluster
@@ -94,10 +92,18 @@ func mergeNamespaces(merged, kms1, kms2 *KubeModelSet) {
 		merged.idx.namespaceNameToID[ns.Name] = ns.UID
 		merged.Metadata.ObjectCount++
 	}
-	for uid, ns := range kms2.Namespaces {
-		if _, exists := merged.Namespaces[uid]; !exists {
-			merged.Namespaces[uid] = copyNamespace(ns)
-			merged.idx.namespaceNameToID[ns.Name] = ns.UID
+	for uid, ns2 := range kms2.Namespaces {
+		if ns1, exists := merged.Namespaces[uid]; exists {
+			// Merge Start/End timestamps for existing namespace
+			if ns2.Start.Before(ns1.Start) {
+				ns1.Start = ns2.Start
+			}
+			if ns2.End.After(ns1.End) {
+				ns1.End = ns2.End
+			}
+		} else {
+			merged.Namespaces[uid] = copyNamespace(ns2)
+			merged.idx.namespaceNameToID[ns2.Name] = ns2.UID
 			merged.Metadata.ObjectCount++
 		}
 	}
@@ -108,9 +114,17 @@ func mergeResourceQuotas(merged, kms1, kms2 *KubeModelSet) {
 		merged.ResourceQuotas[uid] = copyResourceQuota(rq)
 		merged.Metadata.ObjectCount++
 	}
-	for uid, rq := range kms2.ResourceQuotas {
-		if _, exists := merged.ResourceQuotas[uid]; !exists {
-			merged.ResourceQuotas[uid] = copyResourceQuota(rq)
+	for uid, rq2 := range kms2.ResourceQuotas {
+		if rq1, exists := merged.ResourceQuotas[uid]; exists {
+			// Merge Start/End timestamps for existing resource quota
+			if rq2.Start.Before(rq1.Start) {
+				rq1.Start = rq2.Start
+			}
+			if rq2.End.After(rq1.End) {
+				rq1.End = rq2.End
+			}
+		} else {
+			merged.ResourceQuotas[uid] = copyResourceQuota(rq2)
 			merged.Metadata.ObjectCount++
 		}
 	}
@@ -214,6 +228,14 @@ func mergeContainers(merged, kms1, kms2 *KubeModelSet) {
 			container1.RAMKiBLimitSeconds += container2.RAMKiBLimitSeconds
 
 			container1.DurationSeconds += container2.DurationSeconds
+
+			// Merge Start/End timestamps
+			if container2.Start.Before(container1.Start) {
+				container1.Start = container2.Start
+			}
+			if container2.End.After(container1.End) {
+				container1.End = container2.End
+			}
 		} else {
 			merged.Containers[uid] = copyContainer(container2)
 			merged.Metadata.ObjectCount++
@@ -349,6 +371,15 @@ func mergeDeviceUsages(merged, kms1, kms2 *KubeModelSet) {
 			usage1.UsageSeconds += usage2.UsageSeconds
 			usage1.MemoryByteSecondsUsed += usage2.MemoryByteSecondsUsed
 			usage1.UsagePercentageMax = math.Max(usage1.UsagePercentageMax, usage2.UsagePercentageMax)
+			usage1.DurationSeconds += usage2.DurationSeconds
+
+			// Merge Start/End timestamps
+			if usage2.Start.Before(usage1.Start) {
+				usage1.Start = usage2.Start
+			}
+			if usage2.End.After(usage1.End) {
+				usage1.End = usage2.End
+			}
 		} else {
 			merged.DeviceUsages[uid] = copyDeviceUsage(usage2)
 			merged.Metadata.ObjectCount++
@@ -358,10 +389,13 @@ func mergeDeviceUsages(merged, kms1, kms2 *KubeModelSet) {
 
 func copyNamespace(ns *Namespace) *Namespace {
 	return &Namespace{
+		ClusterUID:  ns.ClusterUID,
 		UID:         ns.UID,
 		Name:        ns.Name,
 		Labels:      maps.Clone(ns.Labels),
 		Annotations: maps.Clone(ns.Annotations),
+		Start:       ns.Start,
+		End:         ns.End,
 	}
 }
 
@@ -370,6 +404,8 @@ func copyResourceQuota(rq *ResourceQuota) *ResourceQuota {
 		UID:          rq.UID,
 		Name:         rq.Name,
 		NamespaceUID: rq.NamespaceUID,
+		Start:        rq.Start,
+		End:          rq.End,
 	}
 	if rq.Spec != nil {
 		copied.Spec = &ResourceQuotaSpec{}
@@ -393,22 +429,14 @@ func copyResourceQuota(rq *ResourceQuota) *ResourceQuota {
 }
 
 func copyResourceQuantities(rq ResourceQuantities) ResourceQuantities {
-	return ResourceQuantities{
-		CPUMillicores:          rq.CPUMillicores,
-		MemoryBytes:            rq.MemoryBytes,
-		StorageBytes:           rq.StorageBytes,
-		EphemeralStorageBytes:  rq.EphemeralStorageBytes,
-		StorageByClass:         maps.Clone(rq.StorageByClass),
-		Pods:                   rq.Pods,
-		Services:               rq.Services,
-		ReplicationControllers: rq.ReplicationControllers,
-		ResourceQuotas:         rq.ResourceQuotas,
-		Secrets:                rq.Secrets,
-		ConfigMaps:             rq.ConfigMaps,
-		PersistentVolumeClaims: rq.PersistentVolumeClaims,
-		PVCsByClass:            maps.Clone(rq.PVCsByClass),
-		ExtendedResources:      maps.Clone(rq.ExtendedResources),
+	if rq == nil {
+		return nil
 	}
+	copied := make(ResourceQuantities, len(rq))
+	for k, v := range rq {
+		copied[k] = v
+	}
+	return copied
 }
 
 func copyNode(node *Node) *Node {
@@ -423,7 +451,7 @@ func copyNode(node *Node) *Node {
 		CpuMillicoreUsageMax: node.CpuMillicoreUsageMax,
 		RAMByteUsageMax:      node.RAMByteUsageMax,
 		DurationSeconds:      node.DurationSeconds,
-		AttachedVolumes:      make(map[uuid.UUID]*NodeVolumeUsage),
+		AttachedVolumes:      make(map[string]*NodeVolumeUsage),
 		Start:                node.Start,
 		End:                  node.End,
 	}
@@ -474,6 +502,8 @@ func copyContainer(container *Container) *Container {
 		RAMKiBRequestSeconds:       container.RAMKiBRequestSeconds,
 		CpuMillicoreLimitSeconds:   container.CpuMillicoreLimitSeconds,
 		RAMKiBLimitSeconds:         container.RAMKiBLimitSeconds,
+		Start:                      container.Start,
+		End:                        container.End,
 	}
 }
 
@@ -593,6 +623,8 @@ func copyDeviceUsage(usage *DeviceUsage) *DeviceUsage {
 		UsageSeconds:          usage.UsageSeconds,
 		UsagePercentageMax:    usage.UsagePercentageMax,
 		MemoryByteSecondsUsed: usage.MemoryByteSecondsUsed,
+		DeviceType:            usage.DeviceType,
+		DurationSeconds:       usage.DurationSeconds,
 		Start:                 usage.Start,
 		End:                   usage.End,
 	}

@@ -34,9 +34,6 @@ func Merge(kms1, kms2 *KubeModelSet) (*KubeModelSet, error) {
 	}
 
 	merged := NewKubeModelSet(windowStart, windowEnd)
-	if windowEnd.After(windowStart) {
-		merged.Window.DurationSeconds = Measurement(windowEnd.Sub(windowStart).Seconds())
-	}
 
 	if kms1.Metadata != nil && kms2.Metadata != nil {
 		if kms2.Metadata.CreatedAt.Before(kms1.Metadata.CreatedAt) {

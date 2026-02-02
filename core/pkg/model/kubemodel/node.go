@@ -51,7 +51,7 @@ func (n *Node) RAMByteUsageAverage() Measurement {
 	if n.DurationSeconds == 0 {
 		return 0
 	}
-	return KiBToBytes(n.RAMByteSeconds) / n.DurationSeconds
+	return n.RAMByteSeconds / n.DurationSeconds
 }
 
 // TotalVolumeUsageByteSeconds returns the sum of all volume usage KiB-seconds across all attached volumes.
@@ -79,7 +79,7 @@ func (n *Node) GetVolumeUsageAverage(volumeUID string) Measurement {
 	if !exists || n.DurationSeconds == 0 {
 		return 0
 	}
-	return KiBToBytes(volume.UsageByteSeconds) / n.DurationSeconds
+	return volume.UsageByteSeconds / n.DurationSeconds
 }
 
 func (kms *KubeModelSet) RegisterNode(uid, name string) error {

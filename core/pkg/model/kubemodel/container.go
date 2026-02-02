@@ -34,7 +34,7 @@ func (c *Container) RAMByteUsageAverage() Measurement {
 	if c.DurationSeconds == 0 {
 		return 0
 	}
-	return KiBToBytes(c.RAMByteSeconds / c.DurationSeconds)
+	return c.RAMByteSeconds / c.DurationSeconds
 }
 
 func (c *Container) TotalStorageByteSeconds() Measurement {
@@ -60,7 +60,7 @@ func (c *Container) StorageByteUsageAverage() Measurement {
 		return 0
 	}
 	totalByteSeconds := c.TotalStorageByteSeconds()
-	return KiBToBytes(totalByteSeconds) / c.DurationSeconds
+	return totalByteSeconds / c.DurationSeconds
 }
 
 func (c *Container) CpuMillicoreRequestAverage() Measurement {
@@ -74,7 +74,7 @@ func (c *Container) RAMByteRequestAverage() Measurement {
 	if c.DurationSeconds == 0 {
 		return 0
 	}
-	return KiBToBytes(c.RAMKiBRequestSeconds / c.DurationSeconds)
+	return c.RAMKiBRequestSeconds / c.DurationSeconds
 }
 
 func (c *Container) CpuMillicoreLimitAverage() Measurement {
@@ -88,7 +88,7 @@ func (c *Container) RAMByteLimitAverage() Measurement {
 	if c.DurationSeconds == 0 {
 		return 0
 	}
-	return KiBToBytes(c.RAMKiBLimitSeconds / c.DurationSeconds)
+	return c.RAMKiBLimitSeconds / c.DurationSeconds
 }
 
 func (kms *KubeModelSet) RegisterContainer(uid, name, podUID string) error {

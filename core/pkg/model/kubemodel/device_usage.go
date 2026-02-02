@@ -63,7 +63,7 @@ func (u *DeviceUsage) MemoryByteUsageAverage() Measurement {
 	if u.DurationSeconds == 0 {
 		return 0
 	}
-	return KiBToBytes(u.MemoryByteSecondsUsed) / u.DurationSeconds
+	return u.MemoryByteSecondsUsed / u.DurationSeconds
 }
 
 func (kms *KubeModelSet) RegisterUsage(id, containerID, deviceId string) error {

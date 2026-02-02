@@ -50,10 +50,6 @@ func NewKubeModelSet(start time.Time, end time.Time) *KubeModelSet {
 		Volumes:                map[string]*PersistentVolume{},
 		idx:                    newKubeModelSetIndexes(),
 	}
-	// Set the window duration
-	if end.After(start) {
-		kms.Window.DurationSeconds = Measurement(end.Sub(start).Seconds())
-	}
 	return kms
 }
 

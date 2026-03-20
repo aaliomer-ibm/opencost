@@ -146,14 +146,15 @@ type CustomPricing struct {
 	SpotLabelValue               string `json:"spotLabelValue,omitempty"`
 	GpuLabel                     string `json:"gpuLabel,omitempty"`
 	GpuLabelValue                string `json:"gpuLabelValue,omitempty"`
-	ServiceKeyName               string `json:"awsServiceKeyName,omitempty"`
-	ServiceKeySecret             string `json:"awsServiceKeySecret,omitempty"`
+	AwsServiceKeyName            string `json:"awsServiceKeyName,omitempty"`
+	AwsServiceKeySecret          string `json:"awsServiceKeySecret,omitempty"`
 	AlibabaServiceKeyName        string `json:"alibabaServiceKeyName,omitempty"`
 	AlibabaServiceKeySecret      string `json:"alibabaServiceKeySecret,omitempty"`
 	AlibabaClusterRegion         string `json:"alibabaClusterRegion,omitempty"`
-	SpotDataRegion               string `json:"awsSpotDataRegion,omitempty"`
-	SpotDataBucket               string `json:"awsSpotDataBucket,omitempty"`
-	SpotDataPrefix               string `json:"awsSpotDataPrefix,omitempty"`
+	AwsSpotDataRegion            string `json:"awsSpotDataRegion,omitempty"`
+	AwsSpotDataBucket            string `json:"awsSpotDataBucket,omitempty"`
+	AwsSpotDataPrefix            string `json:"awsSpotDataPrefix,omitempty"`
+	SpotDataFeedEnabled          string `json:"spotDataFeedEnabled,omitempty"`
 	ProjectID                    string `json:"projectID,omitempty"`
 	AthenaProjectID              string `json:"athenaProjectID,omitempty"`
 	AthenaBucketName             string `json:"athenaBucketName"`
@@ -163,7 +164,6 @@ type CustomPricing struct {
 	AthenaTable                  string `json:"athenaTable"`
 	AthenaWorkgroup              string `json:"athenaWorkgroup"`
 	MasterPayerARN               string `json:"masterPayerARN"`
-	AthenaCURVersion             string `json:"athenaCURVersion,omitempty"` // "1.0" or "2.0", defaults to "2.0"
 	BillingDataDataset           string `json:"billingDataDataset,omitempty"`
 	CustomPricesEnabled          string `json:"customPricesEnabled"`
 	AzureSubscriptionID          string `json:"azureSubscriptionID"`

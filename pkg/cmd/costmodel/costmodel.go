@@ -11,8 +11,6 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/opencost/opencost/core/pkg/util/apiutil"
-	"github.com/opencost/opencost/pkg/cloud/models"
-	"github.com/opencost/opencost/pkg/cloud/provider"
 	"github.com/opencost/opencost/pkg/cloudcost"
 	"github.com/opencost/opencost/pkg/customcost"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -29,6 +27,8 @@ import (
 	"github.com/opencost/opencost/pkg/metrics"
 )
 
+const shutdownTimeout = 30 * time.Second
+
 func Execute(conf *Config) error {
 	log.Infof("Starting cost-model version %s", version.FriendlyVersion())
 	if conf == nil {
@@ -42,7 +42,7 @@ func Execute(conf *Config) error {
 
 	router := httprouter.New()
 	var a *costmodel.Accesses
-	var cp models.Provider
+
 	if conf.KubernetesEnabled {
 		a = costmodel.Initialize(router)
 		err := StartExportWorker(context.Background(), a.Model)
@@ -58,17 +58,12 @@ func Execute(conf *Config) error {
 			router.GET("/assets/carbon", a.ComputeAssetsCarbonHandler)
 		}
 
-		// set cloud provider for cloud cost
-		cp = a.CloudProvider
 	}
 
 	var cloudCostPipelineService *cloudcost.PipelineService
 	if conf.CloudCostEnabled {
-		var providerConfig models.ProviderConfig
-		if cp != nil {
-			providerConfig = provider.ExtractConfigFromProviders(cp)
-		}
-		cloudCostPipelineService = costmodel.InitializeCloudCost(router, providerConfig)
+
+		cloudCostPipelineService = costmodel.InitializeCloudCost(router)
 	}
 
 	var customCostPipelineService *customcost.PipelineService
@@ -104,7 +99,42 @@ func Execute(conf *Config) error {
 	telemetryHandler := metrics.ResponseMetricMiddleware(rootMux)
 	handler := cors.AllowAll().Handler(telemetryHandler)
 
-	return http.ListenAndServe(fmt.Sprint(":", conf.Port), errors.PanicHandlerMiddleware(handler))
+	server := &http.Server{
+		Addr:    fmt.Sprint(":", conf.Port),
+		Handler: errors.PanicHandlerMiddleware(handler),
+	}
+
+	serverErrors := make(chan error, 1)
+	go func() {
+		log.Infof("HTTP server starting on port %d", conf.Port)
+		serverErrors <- server.ListenAndServe()
+	}()
+
+	select {
+	case err := <-serverErrors:
+		if err != nil && err != http.ErrServerClosed {
+			return err
+		}
+		return nil
+	case <-ctx.Done():
+		log.Infof("Shutdown signal received, starting graceful shutdown...")
+
+		if customCostPipelineService != nil {
+			customCostPipelineService.Stop()
+		}
+
+		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), shutdownTimeout)
+		defer shutdownCancel()
+
+		if err := server.Shutdown(shutdownCtx); err != nil {
+			log.Errorf("Error during server shutdown: %v", err)
+			server.Close()
+			return err
+		}
+
+		log.Infof("Graceful shutdown completed")
+		return nil
+	}
 }
 
 func StartExportWorker(ctx context.Context, model costmodel.AllocationModel) error {

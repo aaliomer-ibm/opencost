@@ -240,8 +240,10 @@ func NewPVCInfoMetricCollector() *metric.MetricCollector {
 		metric.KubePersistentVolumeClaimInfo,
 		[]string{
 			source.NamespaceLabel,
+			source.NamespaceUIDLabel,
 			source.VolumeNameLabel,
 			source.PVCLabel,
+			source.PVUIDLabel,
 			source.StorageClassLabel,
 			source.UIDLabel,
 		},

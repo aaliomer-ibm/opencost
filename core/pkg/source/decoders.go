@@ -2036,11 +2036,6 @@ func getStartEnd(first, last, windowStart, windowEnd time.Time, resolution time.
 	if last.After(windowEnd) {
 		last = windowEnd
 	}
-	// prevent end times in the future
-	now := time.Now().UTC()
-	if last.After(now) {
-		last = now
-	}
 
 	return first, last
 }

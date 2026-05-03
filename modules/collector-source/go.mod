@@ -5,6 +5,7 @@ replace github.com/opencost/opencost/core => ./../../core
 go 1.25.5
 
 require (
+	github.com/brianvoe/gofakeit/v7 v7.14.1
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/kubecost/events v0.0.8
 	github.com/opencost/opencost/core v0.0.0-20250521155634-81d2b597d1bc

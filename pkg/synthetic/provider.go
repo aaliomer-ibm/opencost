@@ -14,6 +14,7 @@ import (
 type SyntheticProvider struct {
 	spec              synthspec.ClusterSpec
 	nodesByProviderID map[string]synthspec.NodeSpec
+	lbCostPerHr       float64
 }
 
 func NewSyntheticProvider(spec synthspec.ClusterSpec) *SyntheticProvider {
@@ -21,7 +22,21 @@ func NewSyntheticProvider(spec synthspec.ClusterSpec) *SyntheticProvider {
 	for _, n := range spec.Nodes {
 		byPID[n.ProviderID] = n
 	}
-	return &SyntheticProvider{spec: spec, nodesByProviderID: byPID}
+
+	var lbTotal float64
+	var lbCount int
+	for _, svc := range spec.Services {
+		if svc.Type == "LoadBalancer" && svc.CostPerHr > 0 {
+			lbTotal += svc.CostPerHr
+			lbCount++
+		}
+	}
+	lbCost := 0.025
+	if lbCount > 0 {
+		lbCost = lbTotal / float64(lbCount)
+	}
+
+	return &SyntheticProvider{spec: spec, nodesByProviderID: byPID, lbCostPerHr: lbCost}
 }
 
 func (p *SyntheticProvider) ClusterInfo() (map[string]string, error) {
@@ -99,7 +114,7 @@ func (p *SyntheticProvider) NetworkPricing() (*models.Network, error) {
 }
 
 func (p *SyntheticProvider) LoadBalancerPricing() (*models.LoadBalancer, error) {
-	return &models.LoadBalancer{Cost: 0.025}, nil
+	return &models.LoadBalancer{Cost: p.lbCostPerHr}, nil
 }
 
 func (p *SyntheticProvider) GetKey(labels map[string]string, _ *clustercache.Node) models.Key {

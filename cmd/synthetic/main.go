@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/opencost/opencost/core/pkg/heartbeat"
 	"github.com/opencost/opencost/core/pkg/log"
 	"github.com/opencost/opencost/core/pkg/opencost"
 	"github.com/opencost/opencost/modules/collector-source/pkg/collector"
@@ -116,6 +117,7 @@ func computeAndWriteOutputs(cm *costmodel.CostModel, spec synthspec.ClusterSpec,
 		BaseDir: cfg.outputDir, ClusterID: spec.ClusterUID, Resolution: resolutions[len(resolutions)-1],
 	})
 	writePricingModel(writer, allAssetSets, spec, cfg)
+	writeHeartbeats(writer, cfg)
 
 	log.Infof("Done. Output written to %s", cfg.outputDir)
 }
@@ -130,6 +132,7 @@ func processTimeWindows(cm *costmodel.CostModel, writer *synthspec.OutputWriter,
 		writeKubeModel(cm, writer, windowStart, windowEnd)
 		writeAllocations(cm, writer, windowStart, windowEnd)
 		assetSet := writeAssets(cm, writer, windowStart, windowEnd)
+		writeNetworkInsights(cm, writer, windowStart, windowEnd)
 
 		if assetSet != nil {
 			allAssetSets = append(allAssetSets, assetSet)
@@ -174,12 +177,43 @@ func writeAssets(cm *costmodel.CostModel, writer *synthspec.OutputWriter, start,
 	return assetSet
 }
 
+func writeNetworkInsights(cm *costmodel.CostModel, writer *synthspec.OutputWriter, start, end time.Time) {
+	nis, err := cm.ComputeNetworkInsights(start, end)
+	if err != nil {
+		log.Warnf("NetworkInsightSet error for %s: %v", start, err)
+		return
+	}
+	if err := writer.WriteBingenJSON("networkinsights", start, end, nis); err != nil {
+		log.Errorf("Failed to write NetworkInsightSet: %v", err)
+	}
+}
+
 func writePricingModel(writer *synthspec.OutputWriter, assetSets []*opencost.AssetSet, spec synthspec.ClusterSpec, cfg *generationConfig) {
 	pricingModel := synth.CreatePricingModelFromAssets(assetSets, spec.Provider, spec.Region, cfg.startTime)
 	pricingJSON := synth.ConvertPricingModelToJSON(pricingModel)
 
 	if err := writer.WriteEventJSON("finops-agent", "pricingmodel", cfg.startTime, pricingJSON); err != nil {
 		log.Errorf("Failed to write PricingModelSet: %v", err)
+	}
+}
+
+func writeHeartbeats(writer *synthspec.OutputWriter, cfg *generationConfig) {
+	heartbeatInterval := 5 * time.Minute
+	startUptime := uint64(0)
+
+	for t := cfg.startTime; t.Before(cfg.endTime); t = t.Add(heartbeatInterval) {
+		hb := heartbeat.NewHeartbeat(
+			cfg.startStr,
+			t,
+			startUptime+uint64(t.Sub(cfg.startTime).Seconds()),
+			"synthetic-generator",
+			"1.0.0",
+			map[string]any{"synthetic": true},
+		)
+		if err := writer.WriteEventJSON("finops-agent", heartbeat.HeartbeatEventName, t, hb); err != nil {
+			log.Errorf("Failed to write heartbeat: %v", err)
+			return
+		}
 	}
 }
 

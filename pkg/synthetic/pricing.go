@@ -90,6 +90,59 @@ func CreatePricingModelFromAssets(
 		}
 	}
 
+	type diskAccumulator struct {
+		byteHours float64
+		cost      float64
+	}
+	byStorageClass := make(map[string]*diskAccumulator)
+	for _, as := range assetSets {
+		for _, asset := range as.Assets {
+			disk, ok := asset.(*opencost.Disk)
+			if !ok {
+				continue
+			}
+			sc := disk.StorageClass
+			if sc == "" {
+				sc = "default"
+			}
+			acc, exists := byStorageClass[sc]
+			if !exists {
+				acc = &diskAccumulator{}
+				byStorageClass[sc] = acc
+			}
+			acc.byteHours += disk.ByteHours
+			acc.cost += disk.Cost
+		}
+	}
+	for sc, acc := range byStorageClass {
+		giBHours := acc.byteHours / (1024 * 1024 * 1024)
+		if giBHours > 0 {
+			pms.NodePricing[pricingmodel.NodeKey{
+				Provider: provider, PricingType: "StorageGB",
+				UsageType: shared.UsageTypeOnDemand, Region: region, NodeType: sc,
+			}] = pricingmodel.NodePricing{HourlyRate: acc.cost / giBHours}
+		}
+	}
+
+	var lbTotalCost float64
+	var lbCount int
+	for _, as := range assetSets {
+		for _, asset := range as.Assets {
+			lb, ok := asset.(*opencost.LoadBalancer)
+			if !ok {
+				continue
+			}
+			lbTotalCost += lb.Cost
+			lbCount++
+		}
+	}
+	if lbCount > 0 {
+		pms.NodePricing[pricingmodel.NodeKey{
+			Provider: provider, PricingType: "Network",
+			UsageType: shared.UsageTypeOnDemand, Region: region, NodeType: "LoadBalancer",
+		}] = pricingmodel.NodePricing{HourlyRate: lbTotalCost / float64(lbCount)}
+	}
+
 	return pms
 }
 

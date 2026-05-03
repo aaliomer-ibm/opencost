@@ -202,7 +202,12 @@ func (g *Generator) createServiceMetrics() []metric.Update {
 
 func (g *Generator) createClusterMetrics() []metric.Update {
 	clusterLabels := map[string]string{source.UIDLabel: g.spec.ClusterUID}
-	return []metric.Update{{Name: metric.ClusterInfo, Labels: clusterLabels, Value: 1, AdditionalInfo: clusterLabels}}
+	return []metric.Update{
+		{Name: metric.ClusterInfo, Labels: clusterLabels, Value: 1, AdditionalInfo: clusterLabels},
+		{Name: metric.KubecostNetworkZoneEgressCost, Labels: clusterLabels, Value: 0.01},
+		{Name: metric.KubecostNetworkRegionEgressCost, Labels: clusterLabels, Value: 0.02},
+		{Name: metric.KubecostNetworkInternetEgressCost, Labels: clusterLabels, Value: 0.12},
+	}
 }
 
 func (g *Generator) createNodeMetric(n NodeSpec) []metric.Update {
@@ -300,16 +305,70 @@ func (g *Generator) createPodMetric(ctx MetricContext) []metric.Update {
 			},
 		})
 	}
+
+	ticksElapsed := float64(ctx.CurrentTime.Sub(ctx.GenerationStart)/g.interval) + 1
+
 	u = append(u, metric.Update{
 		Name:   metric.ContainerNetworkTransmitBytesTotal,
 		Labels: map[string]string{source.NamespaceLabel: ctx.Namespace.Name, source.PodLabel: ctx.Pod.Name, source.UIDLabel: ctx.Pod.UID},
-		Value:  1024 * 1024,
+		Value:  1024 * 1024 * ticksElapsed,
 	})
 	u = append(u, metric.Update{
 		Name:   metric.ContainerNetworkReceiveBytesTotal,
 		Labels: map[string]string{source.NamespaceLabel: ctx.Namespace.Name, source.PodLabel: ctx.Pod.Name, source.UIDLabel: ctx.Pod.UID},
-		Value:  512 * 1024,
+		Value:  512 * 1024 * ticksElapsed,
 	})
+
+	u = append(u, g.createPodNetworkTrafficMetrics(ctx)...)
+
+	return u
+}
+
+func (g *Generator) createPodNetworkTrafficMetrics(ctx MetricContext) []metric.Update {
+	elapsed := ctx.CurrentTime.Sub(ctx.GenerationStart)
+	ticksElapsed := float64(elapsed/g.interval) + 1
+
+	egressPerTick := 1024.0 * 1024.0
+	ingressPerTick := 512.0 * 1024.0
+	cumulativeEgress := egressPerTick * ticksElapsed
+	cumulativeIngress := ingressPerTick * ticksElapsed
+
+	type trafficSplit struct {
+		internet   string
+		sameRegion string
+		sameZone   string
+		fraction   float64
+	}
+
+	splits := []trafficSplit{
+		{internet: "false", sameRegion: "true", sameZone: "true", fraction: 0.70},
+		{internet: "false", sameRegion: "true", sameZone: "false", fraction: 0.20},
+		{internet: "true", sameRegion: "false", sameZone: "false", fraction: 0.10},
+	}
+
+	var u []metric.Update
+	for _, s := range splits {
+		labels := map[string]string{
+			source.UIDLabel:        ctx.Pod.UID,
+			source.NamespaceLabel:  ctx.Namespace.Name,
+			source.PodNameLabel:    ctx.Pod.Name,
+			source.ServiceLabel:    "",
+			source.InternetLabel:   s.internet,
+			source.SameRegionLabel: s.sameRegion,
+			source.SameZoneLabel:   s.sameZone,
+			source.NatGatewayLabel: "false",
+		}
+		u = append(u, metric.Update{
+			Name:   metric.KubecostPodNetworkEgressBytesTotal,
+			Labels: labels,
+			Value:  cumulativeEgress * s.fraction,
+		})
+		u = append(u, metric.Update{
+			Name:   metric.KubecostPodNetworkIngressBytesTotal,
+			Labels: labels,
+			Value:  cumulativeIngress * s.fraction,
+		})
+	}
 	return u
 }
 

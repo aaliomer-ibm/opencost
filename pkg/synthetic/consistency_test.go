@@ -117,7 +117,7 @@ func TestConsistency_TotalNodeCost_Assets_vs_Pricing(t *testing.T) {
 		t.Fatalf("AssetSet: %v", err)
 	}
 
-	pms := BuildPricingModelSetFromAssets([]*opencost.AssetSet{assetSet}, spec.Provider, spec.Region, start)
+	pms := CreatePricingModelFromAssets([]*opencost.AssetSet{assetSet}, spec.Provider, spec.Region, start)
 
 	totalAssetCPUCost := 0.0
 	totalAssetRAMCost := 0.0
@@ -307,7 +307,7 @@ func TestConsistency_PricingRates_MatchAssetCosts(t *testing.T) {
 		t.Fatalf("AssetSet: %v", err)
 	}
 
-	pms := BuildPricingModelSetFromAssets([]*opencost.AssetSet{assetSet}, spec.Provider, spec.Region, start)
+	pms := CreatePricingModelFromAssets([]*opencost.AssetSet{assetSet}, spec.Provider, spec.Region, start)
 
 	for _, asset := range assetSet.Assets {
 		node, ok := asset.(*opencost.Node)

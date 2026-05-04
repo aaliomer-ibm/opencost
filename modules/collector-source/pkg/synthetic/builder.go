@@ -64,37 +64,40 @@ func (b *ClusterBuilder) Build() ClusterSpec {
 }
 
 func (b *ClusterBuilder) createNodes() []NodeSpec {
-	nodes := make([]NodeSpec, b.config.NumNodes)
-	for i := range nodes {
-		nodes[i] = b.createNode()
-	}
-	return nodes
-}
-
-func (b *ClusterBuilder) createNode() NodeSpec {
 	instanceType := b.faker.RandomString(instanceTypes)
 	cpuCores, ramGiB := instanceTypeResources(instanceType)
+	isSpot := b.faker.Float64() < SpotNodeProbability
+	cpuCostPerHr := b.faker.Float64Range(0.04, 0.16)
+	ramCostPerGiBHr := b.faker.Float64Range(0.006, 0.021)
 
-	node := NodeSpec{
-		Name:            fmt.Sprintf("ip-%s.ec2.internal", b.faker.IPv4Address()),
-		UID:             b.faker.UUID(),
-		ProviderID:      fmt.Sprintf("aws:///us-east-1%s/i-%s", b.faker.RandomString(azSuffixes), b.faker.UUID()[:12]),
-		InstanceType:    instanceType,
-		CPUCores:        cpuCores,
-		RAMBytes:        ramGiB * GiB,
-		IsSpot:          b.faker.Float64() < SpotNodeProbability,
-		CPUCostPerHr:    b.faker.Float64Range(0.04, 0.16),
-		RAMCostPerGiBHr: b.faker.Float64Range(0.006, 0.021),
-		Labels:          randLabelMap(b.faker, b.config.LabelsPerNode),
-	}
-
+	var gpuCount float64
+	var gpuType string
+	var gpuCostPerHr float64
 	if b.faker.Float64() < DefaultGPUProbability {
-		node.GPUCount = float64(b.faker.IntRange(DefaultMinGPUCount, DefaultMaxGPUCount))
-		node.GPUType = "nvidia-tesla-t4"
-		node.GPUCostPerHr = b.faker.Float64Range(0.3, 1.0)
+		gpuCount = float64(b.faker.IntRange(DefaultMinGPUCount, DefaultMaxGPUCount))
+		gpuType = "nvidia-tesla-t4"
+		gpuCostPerHr = b.faker.Float64Range(0.3, 1.0)
 	}
 
-	return node
+	nodes := make([]NodeSpec, b.config.NumNodes)
+	for i := range nodes {
+		nodes[i] = NodeSpec{
+			Name:            fmt.Sprintf("ip-%s.ec2.internal", b.faker.IPv4Address()),
+			UID:             b.faker.UUID(),
+			ProviderID:      fmt.Sprintf("aws:///us-east-1%s/i-%s", b.faker.RandomString(azSuffixes), b.faker.UUID()[:12]),
+			InstanceType:    instanceType,
+			CPUCores:        cpuCores,
+			RAMBytes:        ramGiB * GiB,
+			IsSpot:          isSpot,
+			CPUCostPerHr:    cpuCostPerHr,
+			RAMCostPerGiBHr: ramCostPerGiBHr,
+			GPUCount:        gpuCount,
+			GPUType:         gpuType,
+			GPUCostPerHr:    gpuCostPerHr,
+			Labels:          randLabelMap(b.faker, b.config.LabelsPerNode),
+		}
+	}
+	return nodes
 }
 
 func (b *ClusterBuilder) createNamespaces() []NamespaceSpec {
@@ -145,15 +148,22 @@ func (b *ClusterBuilder) createServices(namespaces []NamespaceSpec) []ServiceSpe
 
 func (b *ClusterBuilder) createPods(spec *ClusterSpec) {
 	totalPods := b.config.NumNodes * b.config.PodsPerNode
+	gpuUsedPerNode := make([]float64, b.config.NumNodes)
+
 	for podIdx := range totalPods {
 		nsIdx := podIdx % b.config.NumNamespaces
 		nodeIdx := podIdx % b.config.NumNodes
-		pod := b.createPod(spec.Nodes[nodeIdx], spec.Nodes, podIdx)
+		node := spec.Nodes[nodeIdx]
+		gpuRemaining := node.GPUCount - gpuUsedPerNode[nodeIdx]
+		pod := b.createPod(node, spec.Nodes, podIdx, gpuRemaining)
+		if len(pod.Containers) > 0 && pod.Containers[0].GPURequest > 0 {
+			gpuUsedPerNode[nodeIdx] += pod.Containers[0].GPURequest
+		}
 		spec.Namespaces[nsIdx].Pods = append(spec.Namespaces[nsIdx].Pods, pod)
 	}
 }
 
-func (b *ClusterBuilder) createPod(node NodeSpec, allNodes []NodeSpec, podIndex int) PodSpec {
+func (b *ClusterBuilder) createPod(node NodeSpec, allNodes []NodeSpec, podIndex int, gpuRemaining float64) PodSpec {
 	workload := b.faker.RandomString(workloadPrefixes)
 	suffix := fmt.Sprintf("%s-%s", b.faker.Adjective(), b.faker.Noun())
 
@@ -169,7 +179,7 @@ func (b *ClusterBuilder) createPod(node NodeSpec, allNodes []NodeSpec, podIndex 
 		Name:          fmt.Sprintf("%s-%s-%s", workload, suffix, b.faker.UUID()[:8]),
 		UID:           b.faker.UUID(),
 		NodeName:      node.Name,
-		Containers:    b.createContainers(node, containerCount),
+		Containers:    b.createContainers(node, containerCount, gpuRemaining),
 		OwnerKind:     b.faker.RandomString(ownerKinds),
 		OwnerName:     fmt.Sprintf("%s-%s", workload, suffix),
 		OwnerUID:      b.faker.UUID(),
@@ -181,24 +191,30 @@ func (b *ClusterBuilder) createPod(node NodeSpec, allNodes []NodeSpec, podIndex 
 	}
 }
 
-func (b *ClusterBuilder) createContainers(node NodeSpec, count int) []ContainerSpec {
+func (b *ClusterBuilder) createContainers(node NodeSpec, count int, gpuRemaining float64) []ContainerSpec {
+	cpuBudget := (node.CPUCores / float64(b.config.PodsPerNode)) * 1.1
+	ramBudget := (node.RAMBytes / float64(b.config.PodsPerNode)) * 1.1
+
 	containers := make([]ContainerSpec, count)
 	for idx := range containers {
-		containers[idx] = b.createContainer(node, idx)
+		containers[idx] = b.createContainer(idx, cpuBudget/float64(count), ramBudget/float64(count), gpuRemaining)
+		if containers[idx].GPURequest > 0 {
+			gpuRemaining -= containers[idx].GPURequest
+		}
 	}
 	return containers
 }
 
-func (b *ClusterBuilder) createContainer(node NodeSpec, containerIndex int) ContainerSpec {
+func (b *ClusterBuilder) createContainer(containerIndex int, cpuBudget, ramBudget, gpuRemaining float64) ContainerSpec {
 	imageName := b.faker.RandomString(containerImages)
 	if containerIndex > 0 {
 		imageName = b.faker.RandomString(sidecarImages)
 	}
 
-	cpuRequest := b.faker.Float64Range(0.1, 2.1)
-	ramRequest := b.faker.Float64Range(128*MiB, 4*GiB)
-	cpuUsage := clampToNode(cpuRequest*b.faker.Float64Range(MinCPUUsageRatio, MaxCPUUsageRatio), node.CPUCores)
-	ramUsage := clampToNode(ramRequest*b.faker.Float64Range(MinRAMUsageRatio, MaxRAMUsageRatio), node.RAMBytes)
+	cpuRequest := b.faker.Float64Range(0.1, cpuBudget)
+	ramRequest := b.faker.Float64Range(128*MiB, ramBudget)
+	cpuUsage := cpuRequest * b.faker.Float64Range(MinCPUUsageRatio, MaxCPUUsageRatio)
+	ramUsage := ramRequest * b.faker.Float64Range(MinRAMUsageRatio, MaxRAMUsageRatio)
 
 	spec := ContainerSpec{
 		Name:       imageName,
@@ -210,18 +226,11 @@ func (b *ClusterBuilder) createContainer(node NodeSpec, containerIndex int) Cont
 		RAMUsage:   ramUsage,
 	}
 
-	if containerIndex == 0 && node.GPUCount > 0 && b.faker.Float64() < ContainerGPUAssignmentProb {
+	if containerIndex == 0 && gpuRemaining >= 1.0 && b.faker.Float64() < ContainerGPUAssignmentProb {
 		spec.GPURequest = 1.0
 	}
 
 	return spec
-}
-
-func clampToNode(usage, nodeCapacity float64) float64 {
-	if usage > nodeCapacity {
-		return nodeCapacity * NodeResourceSafetyMargin
-	}
-	return usage
 }
 
 func (b *ClusterBuilder) randomPodLifecycle() (startOffset, duration time.Duration) {
@@ -251,15 +260,23 @@ func (b *ClusterBuilder) randomPodMigration(currentNode NodeSpec, allNodes []Nod
 }
 
 func (b *ClusterBuilder) createPVs(count int) []PVSpec {
+	if count == 0 {
+		return nil
+	}
+
+	storageClass := b.faker.RandomString(storageClasses)
+	capacityBytes := float64(b.faker.IntRange(10, 200)) * GiB
+	costPerGiBHr := b.faker.Float64Range(0.0001, 0.0006)
+
 	pvs := make([]PVSpec, count)
 	for i := range pvs {
 		pvs[i] = PVSpec{
 			Name:          fmt.Sprintf("pv-%s-%s", b.faker.Noun(), b.faker.UUID()[:8]),
 			UID:           b.faker.UUID(),
 			ProviderID:    fmt.Sprintf("vol-%s", b.faker.UUID()[:12]),
-			StorageClass:  b.faker.RandomString(storageClasses),
-			CapacityBytes: float64(b.faker.IntRange(10, 200)) * GiB,
-			CostPerGiBHr:  b.faker.Float64Range(0.0001, 0.0006),
+			StorageClass:  storageClass,
+			CapacityBytes: capacityBytes,
+			CostPerGiBHr:  costPerGiBHr,
 		}
 	}
 	return pvs
